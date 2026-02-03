@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package blippy.conversation;
+
+option go_package = "github.com/dstotijn/blippy/internal/conversation";
+
+import "google/protobuf/timestamp.proto";
+
+message Conversation {
+  string id = 1;
+  string agent_id = 2;
+  string title = 3;
+  string previous_response_id = 4;  // OpenResponses chaining
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  string role = 3;  // "user", "assistant", "system"
+  string content = 4;
+  google.protobuf.Timestamp created_at = 5;
+  repeated StoredToolExecution tool_executions = 6;
+}
+
+message StoredToolExecution {
+  string name = 1;    // tool name (e.g., "bash")
+  string input = 2;   // tool input/arguments as JSON
+  string result = 3;  // tool output
+}
+
+message CreateConversationRequest {
+  string agent_id = 1;
+}
+
+message GetConversationRequest {
+  string id = 1;
+}
+
+message ListConversationsRequest {
+  string agent_id = 1;  // optional filter
+}
+
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+}
+
+message DeleteConversationRequest {
+  string id = 1;
+}
+
+message GetMessagesRequest {
+  string conversation_id = 1;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message ChatRequest {
+  string conversation_id = 1;
+  string content = 2;
+}
+
+// Streaming response events
+message ChatEvent {
+  oneof event {
+    ChatDelta delta = 1;
+    ChatDone done = 2;
+    ChatError error = 3;
+    ToolExecution tool_execution = 4;
+  }
+}
+
+message ChatDelta {
+  string content = 1;  // partial token
+}
+
+message ChatDone {
+  string user_message_id = 1;
+  string assistant_message_id = 2;
+  string response_id = 3;  // OpenResponses response_id for chaining
+  string title = 4;  // Set when title was generated (first turn only)
+}
+
+message ChatError {
+  string message = 1;
+}
+
+message ToolExecution {
+  string name = 1;    // tool name (e.g., "bash", "fetch_url")
+  string status = 2;  // "executing", "completed", "error"
+  string result = 3;  // tool output (when completed)
+  string input = 4;   // tool input/arguments as JSON
+}
+
+message Empty {}
+
+service ConversationService {
+  rpc CreateConversation(CreateConversationRequest) returns (Conversation);
+  rpc GetConversation(GetConversationRequest) returns (Conversation);
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc DeleteConversation(DeleteConversationRequest) returns (Empty);
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+  rpc Chat(ChatRequest) returns (stream ChatEvent);
+}

@@ -1,0 +1,16 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/blippy ./cmd/blippy"
+entrypoint = "./tmp/blippy"
+include_ext = ["go", "toml"]
+exclude_dir = ["tmp", "web", "node_modules", "vendor"]
+exclude_regex = ["_test\\.go"]
+delay = 1000
+
+[log]
+main_only = true
+
+[misc]
+clean_on_exit = true

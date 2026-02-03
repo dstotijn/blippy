@@ -1,0 +1,68 @@
+package tool
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+)
+
+// AgentCaller is the interface for running subagents.
+type AgentCaller interface {
+	RunAgent(ctx context.Context, agentID, prompt string, depth int) (string, error)
+}
+
+type callAgentArgs struct {
+	AgentID string `json:"agent_id"`
+	Prompt  string `json:"prompt"`
+}
+
+// NewCallAgentTool creates a tool for synchronous subagent invocation.
+func NewCallAgentTool(caller AgentCaller) *Tool {
+	return &Tool{
+		Name:        "call_agent",
+		Description: "Call another agent synchronously and get its response. Use this to delegate tasks to specialized agents.",
+		Parameters: json.RawMessage(`{
+			"type": "object",
+			"properties": {
+				"agent_id": {
+					"type": "string",
+					"description": "The ID of the agent to call"
+				},
+				"prompt": {
+					"type": "string",
+					"description": "The instruction for the agent"
+				}
+			},
+			"required": ["agent_id", "prompt"]
+		}`),
+		Handler: func(ctx context.Context, argsJSON json.RawMessage) (string, error) {
+			var args callAgentArgs
+			if err := json.Unmarshal(argsJSON, &args); err != nil {
+				return "", fmt.Errorf("parse args: %w", err)
+			}
+
+			if args.AgentID == "" {
+				return "", fmt.Errorf("agent_id is required")
+			}
+			if args.Prompt == "" {
+				return "", fmt.Errorf("prompt is required")
+			}
+
+			// Get current depth and check limit
+			currentDepth := GetDepth(ctx)
+			newDepth := currentDepth + 1
+
+			if newDepth > DefaultMaxDepth {
+				return "", fmt.Errorf("max agent depth exceeded (%d)", DefaultMaxDepth)
+			}
+
+			// Call the subagent
+			response, err := caller.RunAgent(ctx, args.AgentID, args.Prompt, newDepth)
+			if err != nil {
+				return fmt.Sprintf("Error calling agent: %s", err.Error()), nil
+			}
+
+			return response, nil
+		},
+	}
+}

@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package blippy.notification;
+
+option go_package = "github.com/dstotijn/blippy/internal/notification";
+
+import "google/protobuf/timestamp.proto";
+
+message NotificationChannel {
+  string id = 1;
+  string name = 2;
+  string type = 3;  // e.g., "email", "slack", "webhook"
+  string config = 4;  // JSON-encoded configuration
+  string description = 5;  // Guidance for LLM on when to use this channel
+  string json_schema = 6;  // JSON Schema for the message payload
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreateNotificationChannelRequest {
+  string name = 1;
+  string type = 2;
+  string config = 3;
+  string description = 4;
+  string json_schema = 5;
+}
+
+message GetNotificationChannelRequest {
+  string id = 1;
+}
+
+message ListNotificationChannelsRequest {}
+
+message ListNotificationChannelsResponse {
+  repeated NotificationChannel channels = 1;
+}
+
+message UpdateNotificationChannelRequest {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string config = 4;
+  string description = 5;
+  string json_schema = 6;
+}
+
+message DeleteNotificationChannelRequest {
+  string id = 1;
+}
+
+message Empty {}
+
+// NotificationChannelService manages notification channels for triggers.
+service NotificationChannelService {
+  rpc CreateNotificationChannel(CreateNotificationChannelRequest) returns (NotificationChannel);
+  rpc GetNotificationChannel(GetNotificationChannelRequest) returns (NotificationChannel);
+  rpc ListNotificationChannels(ListNotificationChannelsRequest) returns (ListNotificationChannelsResponse);
+  rpc UpdateNotificationChannel(UpdateNotificationChannelRequest) returns (NotificationChannel);
+  rpc DeleteNotificationChannel(DeleteNotificationChannelRequest) returns (Empty);
+}

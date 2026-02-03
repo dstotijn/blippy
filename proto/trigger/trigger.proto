@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package blippy.trigger;
+
+option go_package = "github.com/dstotijn/blippy/internal/trigger";
+
+import "google/protobuf/timestamp.proto";
+
+message Trigger {
+  string id = 1;
+  string agent_id = 2;
+  string name = 3;
+  string prompt = 4;
+  string cron_expr = 5;  // optional, empty if not set
+  bool enabled = 6;
+  google.protobuf.Timestamp next_run_at = 7;  // optional, zero value if not set
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CreateTriggerRequest {
+  string agent_id = 1;
+  string name = 2;
+  string prompt = 3;
+  string cron_expr = 4;  // optional, for scheduled triggers
+  string delay = 5;      // optional, for one-time delayed triggers (e.g., "5m", "1h")
+}
+
+message GetTriggerRequest {
+  string id = 1;
+}
+
+message ListTriggersRequest {
+  string agent_id = 1;  // optional filter
+}
+
+message ListTriggersResponse {
+  repeated Trigger triggers = 1;
+}
+
+message UpdateTriggerRequest {
+  string id = 1;
+  string name = 2;
+  string prompt = 3;
+  string cron_expr = 4;
+  bool enabled = 5;
+}
+
+message DeleteTriggerRequest {
+  string id = 1;
+}
+
+message Empty {}
+
+// TriggerService manages autonomous triggers.
+service TriggerService {
+  rpc CreateTrigger(CreateTriggerRequest) returns (Trigger);
+  rpc GetTrigger(GetTriggerRequest) returns (Trigger);
+  rpc ListTriggers(ListTriggersRequest) returns (ListTriggersResponse);
+  rpc UpdateTrigger(UpdateTriggerRequest) returns (Trigger);
+  rpc DeleteTrigger(DeleteTriggerRequest) returns (Empty);
+}

@@ -1,0 +1,44 @@
+# Plans
+.plans/
+
+# Binary
+bin/
+/blippy
+blippy.db
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test
+*.test
+*.out
+
+# Dependencies
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+web/node_modules/
+web/dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# Claude Code
+.claude/settings.local.json
+tmp/

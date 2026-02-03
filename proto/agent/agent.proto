@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package blippy.agent;
+
+option go_package = "github.com/dstotijn/blippy/internal/agent";
+
+import "google/protobuf/timestamp.proto";
+
+message Agent {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string system_prompt = 4;
+  repeated string enabled_tools = 5;
+  repeated string enabled_notification_channels = 6;  // Channel IDs
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreateAgentRequest {
+  string name = 1;
+  string description = 2;
+  string system_prompt = 3;
+  repeated string enabled_tools = 4;
+  repeated string enabled_notification_channels = 5;
+}
+
+message GetAgentRequest {
+  string id = 1;
+}
+
+message ListAgentsRequest {}
+
+message ListAgentsResponse {
+  repeated Agent agents = 1;
+}
+
+message UpdateAgentRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string system_prompt = 4;
+  repeated string enabled_tools = 5;
+  repeated string enabled_notification_channels = 6;
+}
+
+message DeleteAgentRequest {
+  string id = 1;
+}
+
+message Empty {}
+
+service AgentService {
+  rpc CreateAgent(CreateAgentRequest) returns (Agent);
+  rpc GetAgent(GetAgentRequest) returns (Agent);
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
+  rpc UpdateAgent(UpdateAgentRequest) returns (Agent);
+  rpc DeleteAgent(DeleteAgentRequest) returns (Empty);
+}

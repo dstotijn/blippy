@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  commands:
+    go-vet:
+      glob: "*.go"
+      run: go vet ./...
+    go-fmt:
+      glob: "*.go"
+      run: test -z "$(gofmt -l .)"
+    web-check:
+      glob: "web/**/*.{ts,tsx,js,jsx}"
+      run: mise run web:check
