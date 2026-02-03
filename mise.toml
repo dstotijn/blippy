@@ -31,7 +31,7 @@ env = { FORCE_COLOR = "1" }
 
 [tasks.build]
 description = "Build production binary"
-run = "go build -o bin/blippy ./cmd/blippy"
+run = "go generate ./web && go build -o bin/blippy ./cmd/blippy"
 
 [tasks.test]
 description = "Run tests"

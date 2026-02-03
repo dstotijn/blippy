@@ -12,6 +12,7 @@ import (
 	"github.com/dstotijn/blippy/internal/notification"
 	"github.com/dstotijn/blippy/internal/trigger"
 	"github.com/dstotijn/blippy/internal/webhook"
+	"github.com/dstotijn/blippy/web"
 )
 
 type Server struct {
@@ -24,7 +25,7 @@ func New(
 	triggerService *trigger.Service,
 	notificationService *notification.Service,
 	webhookHandler *webhook.Handler,
-) *Server {
+) (*Server, error) {
 	mux := http.NewServeMux()
 
 	opts := []connect.HandlerOption{connect.WithCompressMinBytes(1024)}
@@ -44,7 +45,14 @@ func New(
 	// Webhook trigger endpoint
 	mux.Handle("/webhooks/trigger", webhookHandler)
 
-	return &Server{mux: mux}
+	// Web UI (catch-all for SPA)
+	webHandler, err := web.AppHandler()
+	if err != nil {
+		return nil, err
+	}
+	mux.Handle("/", webHandler)
+
+	return &Server{mux: mux}, nil
 }
 
 func (s *Server) Handler() http.Handler {

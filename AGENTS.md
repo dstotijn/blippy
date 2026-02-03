@@ -16,7 +16,7 @@ A self-hosted AI agent platform distributed as a single static Go binary with an
 
 ## Architecture Decisions
 
-- **Single binary distribution**: Frontend will be statically built and embedded into the Go binary (Phase 4)
+- **Single binary distribution**: Frontend is statically built and embedded via `go:embed` (`web/handler.go`)
 - **OpenResponses spec**: Use `previous_response_id` for conversation chaining, items as atomic units
 - **Idiomatic Go structure**: Packages named by responsibility, not architectural layers
 - **SQLite**: Embedded database fits single-binary goal, no external dependencies
@@ -36,6 +36,9 @@ internal/
 ├── tool/           # Tool definitions and execution
 ├── trigger/        # Trigger service
 └── webhook/        # Webhook handler
+web/                # Frontend (React + TanStack Router + Tailwind)
+├── handler.go      # Embeds dist/ and serves SPA
+└── dist/           # Production build output (embedded in binary)
 ```
 
 ## Development Commands

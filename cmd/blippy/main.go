@@ -82,7 +82,10 @@ func run() error {
 	triggerRPCService := trigger.NewService(db)
 	notificationRPCService := notification.NewService(db)
 	webhookHandler := webhook.New(queries, agentRunner, logger)
-	srv := server.New(agentService, conversationService, triggerRPCService, notificationRPCService, webhookHandler)
+	srv, err := server.New(agentService, conversationService, triggerRPCService, notificationRPCService, webhookHandler)
+	if err != nil {
+		return fmt.Errorf("failed to create server: %w", err)
+	}
 
 	log.Printf("🤖 Blippy listening on :%s", port)
 	return http.ListenAndServe(":"+port, srv.Handler())
