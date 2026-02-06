@@ -27,7 +27,7 @@ func NewCallAgentTool(caller AgentCaller) *Tool {
 			"properties": {
 				"agent_id": {
 					"type": "string",
-					"description": "The ID of the agent to call"
+					"description": "The ID of the agent to call. If omitted, defaults to the current agent."
 				},
 				"prompt": {
 					"type": "string",
@@ -38,7 +38,7 @@ func NewCallAgentTool(caller AgentCaller) *Tool {
 					"description": "Optional model override for this agent call"
 				}
 			},
-			"required": ["agent_id", "prompt"]
+			"required": ["prompt"]
 		}`),
 		Handler: func(ctx context.Context, argsJSON json.RawMessage) (string, error) {
 			var args callAgentArgs
@@ -46,8 +46,12 @@ func NewCallAgentTool(caller AgentCaller) *Tool {
 				return "", fmt.Errorf("parse args: %w", err)
 			}
 
+			// Determine agent ID (from args or context)
 			if args.AgentID == "" {
-				return "", fmt.Errorf("agent_id is required")
+				args.AgentID = GetAgentID(ctx)
+				if args.AgentID == "" {
+					return "", fmt.Errorf("agent_id is required (no current agent in context)")
+				}
 			}
 			if args.Prompt == "" {
 				return "", fmt.Errorf("prompt is required")

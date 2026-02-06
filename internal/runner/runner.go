@@ -264,7 +264,7 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 							for _, fc := range toolInputs {
 								if fc.Type == "function_call" && fc.CallID == input.CallID {
 									toolExecs = append(toolExecs, storedToolExec{
-										Name:   fc.Name,
+										Name:   tool.DecodeToolName(fc.Name),
 										Input:  fc.Arguments,
 										Result: input.Output,
 									})

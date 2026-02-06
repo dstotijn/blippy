@@ -280,7 +280,7 @@ func (s *Service) streamWithToolExecution(
 						var toolName, toolArgs string
 						for _, out := range event.Response.Output {
 							if out.Type == "function_call" && out.CallID == input.CallID {
-								toolName = out.Name
+								toolName = tool.DecodeToolName(out.Name)
 								toolArgs = out.Arguments
 								break
 							}

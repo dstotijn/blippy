@@ -60,7 +60,9 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 
 	// Then, add the outputs for each function call
 	for _, call := range toolCalls {
-		result, err := e.executeTool(ctx, call.Name, json.RawMessage(call.Arguments))
+		// Decode API-safe name back to internal name (e.g. "notify__foo" -> "notify:foo")
+		internalName := DecodeToolName(call.Name)
+		result, err := e.executeTool(ctx, internalName, json.RawMessage(call.Arguments))
 		if err != nil {
 			result = fmt.Sprintf("Error: %s", err.Error())
 		}
@@ -101,7 +103,8 @@ func (e *Executor) executeTool(ctx context.Context, name string, args json.RawMe
 	return e.registry.Execute(ctx, name, args)
 }
 
-// GetToolsForAgent returns tool definitions for enabled tools and notification channels
+// GetToolsForAgent returns tool definitions for enabled tools and notification channels.
+// Tool names are encoded for API compatibility (e.g. "notify:" becomes "notify__").
 func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, enabledNotificationChannels []string) ([]map[string]any, error) {
 	// Get static tools from registry
 	tools := e.registry.List(enabledTools)
@@ -117,7 +120,7 @@ func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, 
 			t := BuildNotificationTool(channel)
 			tools = append(tools, map[string]any{
 				"type":        "function",
-				"name":        t.Name,
+				"name":        encodeToolName(t.Name),
 				"description": t.Description,
 				"parameters":  t.Parameters,
 			})
@@ -125,4 +128,16 @@ func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, 
 	}
 
 	return tools, nil
+}
+
+// encodeToolName converts internal tool names to API-safe names.
+// "notify:foo" becomes "notify__foo".
+func encodeToolName(name string) string {
+	return strings.ReplaceAll(name, ":", "__")
+}
+
+// DecodeToolName converts API-safe tool names back to internal names.
+// "notify__foo" becomes "notify:foo".
+func DecodeToolName(name string) string {
+	return strings.Replace(name, "notify__", "notify:", 1)
 }
