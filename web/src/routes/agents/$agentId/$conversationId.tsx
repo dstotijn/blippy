@@ -228,7 +228,8 @@ function ConversationChat() {
 				} else if (event.event.case === "toolExecution") {
 					const { name, input, result } = event.event.value;
 					const toolExec = {
-						id: crypto.randomUUID(),
+						// Not secret; only used as a React key.
+						id: Math.random().toString(36).slice(2),
 						name,
 						input,
 						result,
