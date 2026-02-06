@@ -50,16 +50,17 @@ type NotificationChannel struct {
 }
 
 type Trigger struct {
-	ID        string
-	AgentID   string
-	Name      string
-	Prompt    string
-	CronExpr  sql.NullString
-	Enabled   int64
-	NextRunAt sql.NullString
-	CreatedAt string
-	UpdatedAt string
-	Model     string
+	ID                string
+	AgentID           string
+	Name              string
+	Prompt            string
+	CronExpr          sql.NullString
+	Enabled           int64
+	NextRunAt         sql.NullString
+	CreatedAt         string
+	UpdatedAt         string
+	Model             string
+	ConversationTitle string
 }
 
 type TriggerRun struct {

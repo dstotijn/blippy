@@ -52,8 +52,8 @@ SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC;
 -- Triggers
 
 -- name: CreateTrigger :one
-INSERT INTO triggers (id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO triggers (id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetTrigger :one

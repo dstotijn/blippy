@@ -40,6 +40,7 @@ type RunOpts struct {
 	Prompt  string
 	Depth   int
 	Model   string
+	Title   string
 }
 
 // RunResult contains the outcome of an agent run.
@@ -93,7 +94,7 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 	conv, err := r.queries.CreateConversation(ctx, store.CreateConversationParams{
 		ID:                 convID,
 		AgentID:            opts.AgentID,
-		Title:              "",
+		Title:              opts.Title,
 		PreviousResponseID: "",
 		CreatedAt:          now.Format(time.RFC3339),
 		UpdatedAt:          now.Format(time.RFC3339),

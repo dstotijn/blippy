@@ -8,13 +8,14 @@ import (
 
 // AgentCaller is the interface for running subagents.
 type AgentCaller interface {
-	RunAgent(ctx context.Context, agentID, prompt string, depth int, model string) (string, error)
+	RunAgent(ctx context.Context, agentID, prompt string, depth int, model, title string) (string, error)
 }
 
 type callAgentArgs struct {
 	AgentID string `json:"agent_id"`
 	Prompt  string `json:"prompt"`
 	Model   string `json:"model,omitempty"`
+	Title   string `json:"title,omitempty"`
 }
 
 // NewCallAgentTool creates a tool for synchronous subagent invocation.
@@ -36,6 +37,10 @@ func NewCallAgentTool(caller AgentCaller) *Tool {
 				"model": {
 					"type": "string",
 					"description": "Optional model override for this agent call"
+				},
+				"title": {
+					"type": "string",
+					"description": "Optional title for the new conversation. If omitted, a title is auto-generated."
 				}
 			},
 			"required": ["prompt"]
@@ -66,7 +71,7 @@ func NewCallAgentTool(caller AgentCaller) *Tool {
 			}
 
 			// Call the subagent
-			response, err := caller.RunAgent(ctx, args.AgentID, args.Prompt, newDepth, args.Model)
+			response, err := caller.RunAgent(ctx, args.AgentID, args.Prompt, newDepth, args.Model, args.Title)
 			if err != nil {
 				return fmt.Sprintf("Error calling agent: %s", err.Error()), nil
 			}
