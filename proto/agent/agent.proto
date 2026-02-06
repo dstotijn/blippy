@@ -15,6 +15,7 @@ message Agent {
   repeated string enabled_notification_channels = 6;  // Channel IDs
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
+  string model = 9;
 }
 
 message CreateAgentRequest {
@@ -23,6 +24,7 @@ message CreateAgentRequest {
   string system_prompt = 3;
   repeated string enabled_tools = 4;
   repeated string enabled_notification_channels = 5;
+  string model = 6;
 }
 
 message GetAgentRequest {
@@ -42,6 +44,7 @@ message UpdateAgentRequest {
   string system_prompt = 4;
   repeated string enabled_tools = 5;
   repeated string enabled_notification_channels = 6;
+  string model = 7;
 }
 
 message DeleteAgentRequest {
@@ -50,10 +53,24 @@ message DeleteAgentRequest {
 
 message Empty {}
 
+message Model {
+  string id = 1;
+  string name = 2;
+  string prompt_pricing = 3;
+  string completion_pricing = 4;
+}
+
+message ListModelsRequest {}
+
+message ListModelsResponse {
+  repeated Model models = 1;
+}
+
 service AgentService {
   rpc CreateAgent(CreateAgentRequest) returns (Agent);
   rpc GetAgent(GetAgentRequest) returns (Agent);
   rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
   rpc UpdateAgent(UpdateAgentRequest) returns (Agent);
   rpc DeleteAgent(DeleteAgentRequest) returns (Empty);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
 }

@@ -11,7 +11,7 @@ import (
 
 // TriggerCreator is the interface for creating triggers.
 type TriggerCreator interface {
-	CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time) (string, error)
+	CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time, model string) (string, error)
 }
 
 type scheduleArgs struct {
@@ -19,6 +19,7 @@ type scheduleArgs struct {
 	Delay   string `json:"delay,omitempty"`
 	Cron    string `json:"cron,omitempty"`
 	AgentID string `json:"agent_id,omitempty"`
+	Model   string `json:"model,omitempty"`
 }
 
 // NewScheduleAgentRunTool creates a tool for scheduling future agent runs.
@@ -44,6 +45,10 @@ func NewScheduleAgentRunTool(creator TriggerCreator) *Tool {
 				"agent_id": {
 					"type": "string",
 					"description": "Agent to run. Defaults to current agent if not specified."
+				},
+				"model": {
+					"type": "string",
+					"description": "Optional model override for the scheduled run"
 				}
 			},
 			"required": ["prompt"]
@@ -104,7 +109,7 @@ func NewScheduleAgentRunTool(creator TriggerCreator) *Tool {
 			name := truncate(args.Prompt, 50)
 
 			// Call creator.CreateTrigger()
-			triggerID, err := creator.CreateTrigger(ctx, agentID, name, args.Prompt, cronExpr, nextRunAt)
+			triggerID, err := creator.CreateTrigger(ctx, agentID, name, args.Prompt, cronExpr, nextRunAt, args.Model)
 			if err != nil {
 				return "", fmt.Errorf("create trigger: %w", err)
 			}

@@ -13,11 +13,12 @@ func NewAdapter(r *Runner) *Adapter {
 }
 
 // RunAgent implements tool.AgentCaller.
-func (a *Adapter) RunAgent(ctx context.Context, agentID, prompt string, depth int) (string, error) {
+func (a *Adapter) RunAgent(ctx context.Context, agentID, prompt string, depth int, model string) (string, error) {
 	result, err := a.runner.Run(ctx, RunOpts{
 		AgentID: agentID,
 		Prompt:  prompt,
 		Depth:   depth,
+		Model:   model,
 	})
 	if err != nil {
 		return "", err

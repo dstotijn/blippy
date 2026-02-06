@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 const baseURL = "https://openrouter.ai/api/v1"
@@ -16,6 +18,18 @@ const baseURL = "https://openrouter.ai/api/v1"
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
+
+	modelsMu      sync.Mutex
+	modelsCache   []Model
+	modelsFetched time.Time
+}
+
+// Model represents an available model from OpenRouter.
+type Model struct {
+	ID               string
+	Name             string
+	PromptPricing    string
+	CompletionPricing string
 }
 
 func NewClient(apiKey string) *Client {
@@ -185,6 +199,62 @@ func (c *Client) CreateResponseStream(ctx context.Context, req *ResponseRequest)
 	}()
 
 	return events, errs
+}
+
+// ListModels returns the list of available models from OpenRouter, cached for 1 hour.
+func (c *Client) ListModels(ctx context.Context) ([]Model, error) {
+	c.modelsMu.Lock()
+	defer c.modelsMu.Unlock()
+
+	if c.modelsCache != nil && time.Since(c.modelsFetched) < time.Hour {
+		return c.modelsCache, nil
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/models", nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []struct {
+			ID      string `json:"id"`
+			Name    string `json:"name"`
+			Pricing struct {
+				Prompt     string `json:"prompt"`
+				Completion string `json:"completion"`
+			} `json:"pricing"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	models := make([]Model, len(result.Data))
+	for i, m := range result.Data {
+		models[i] = Model{
+			ID:                m.ID,
+			Name:              m.Name,
+			PromptPricing:     m.Pricing.Prompt,
+			CompletionPricing: m.Pricing.Completion,
+		}
+	}
+
+	c.modelsCache = models
+	c.modelsFetched = time.Now()
+
+	return models, nil
 }
 
 // GenerateTitle generates a brief conversation title from the first exchange.

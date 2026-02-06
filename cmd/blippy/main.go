@@ -77,7 +77,7 @@ func run() error {
 	sched.Start(ctx)
 	defer sched.Stop()
 
-	agentService := agent.NewService(db)
+	agentService := agent.NewService(db, orClient)
 	conversationService := conversation.NewService(db, orClient, model, toolExecutor)
 	triggerRPCService := trigger.NewService(db)
 	notificationRPCService := notification.NewService(db)

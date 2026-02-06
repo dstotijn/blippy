@@ -1,6 +1,6 @@
 -- name: CreateAgent :one
-INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetAgent :one
@@ -11,7 +11,7 @@ SELECT * FROM agents ORDER BY created_at DESC;
 
 -- name: UpdateAgent :one
 UPDATE agents
-SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, updated_at = ?
+SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, model = ?, updated_at = ?
 WHERE id = ?
 RETURNING *;
 
@@ -52,8 +52,8 @@ SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC;
 -- Triggers
 
 -- name: CreateTrigger :one
-INSERT INTO triggers (id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO triggers (id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetTrigger :one

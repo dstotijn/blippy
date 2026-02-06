@@ -19,7 +19,7 @@ func NewTriggerService(queries *store.Queries) *TriggerService {
 }
 
 // CreateTrigger creates a new trigger and returns its ID.
-func (s *TriggerService) CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time) (string, error) {
+func (s *TriggerService) CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time, model string) (string, error) {
 	now := time.Now().Format(time.RFC3339)
 	id := uuid.NewString()
 
@@ -36,6 +36,7 @@ func (s *TriggerService) CreateTrigger(ctx context.Context, agentID, name, promp
 		CronExpr:  store.NewNullString(cronExprValue),
 		Enabled:   1,
 		NextRunAt: store.NewNullString(nextRunAt.Format(time.RFC3339)),
+		Model:     model,
 		CreatedAt: now,
 		UpdatedAt: now,
 	})

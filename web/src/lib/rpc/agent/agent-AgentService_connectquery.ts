@@ -28,3 +28,8 @@ export const updateAgent = AgentService.method.updateAgent;
  * @generated from rpc blippy.agent.AgentService.DeleteAgent
  */
 export const deleteAgent = AgentService.method.deleteAgent;
+
+/**
+ * @generated from rpc blippy.agent.AgentService.ListModels
+ */
+export const listModels = AgentService.method.listModels;

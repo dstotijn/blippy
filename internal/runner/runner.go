@@ -30,7 +30,7 @@ CRITICAL: You must complete the task independently:
 type Runner struct {
 	queries      *store.Queries
 	orClient     *openrouter.Client
-	model        string
+	defaultModel string
 	toolExecutor *tool.Executor
 }
 
@@ -39,6 +39,7 @@ type RunOpts struct {
 	AgentID string
 	Prompt  string
 	Depth   int
+	Model   string
 }
 
 // RunResult contains the outcome of an agent run.
@@ -48,11 +49,11 @@ type RunResult struct {
 }
 
 // New creates a new Runner.
-func New(queries *store.Queries, orClient *openrouter.Client, model string, toolExecutor *tool.Executor) *Runner {
+func New(queries *store.Queries, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor) *Runner {
 	return &Runner{
 		queries:      queries,
 		orClient:     orClient,
-		model:        model,
+		defaultModel: defaultModel,
 		toolExecutor: toolExecutor,
 	}
 }
@@ -75,6 +76,15 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 	agent, err := r.queries.GetAgent(ctx, opts.AgentID)
 	if err != nil {
 		return nil, fmt.Errorf("get agent: %w", err)
+	}
+
+	// Resolve model: opts.Model > agent.Model > defaultModel
+	model := r.defaultModel
+	if agent.Model != "" {
+		model = agent.Model
+	}
+	if opts.Model != "" {
+		model = opts.Model
 	}
 
 	// Create new conversation
@@ -143,7 +153,7 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 	// Build OpenRouter request with autonomous instructions prepended
 	instructions := autonomousInstructions + agent.SystemPrompt
 	orReq := &openrouter.ResponseRequest{
-		Model:        r.model,
+		Model:        model,
 		Input:        inputs,
 		Instructions: instructions,
 		Tools:        tools,
@@ -206,7 +216,7 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 							}
 						}
 						if userContent != "" {
-							generated, err := r.orClient.GenerateTitle(ctx, r.model, userContent, fullContent)
+							generated, err := r.orClient.GenerateTitle(ctx, r.defaultModel, userContent, fullContent)
 							if err == nil {
 								title = generated
 							}

@@ -22,16 +22,16 @@ type Service struct {
 	queries      *store.Queries
 	db           *sql.DB
 	orClient     *openrouter.Client
-	model        string
+	defaultModel string
 	toolExecutor *tool.Executor
 }
 
-func NewService(db *sql.DB, orClient *openrouter.Client, model string, toolExecutor *tool.Executor) *Service {
+func NewService(db *sql.DB, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor) *Service {
 	return &Service{
 		queries:      store.New(db),
 		db:           db,
 		orClient:     orClient,
-		model:        model,
+		defaultModel: defaultModel,
 		toolExecutor: toolExecutor,
 	}
 }
@@ -125,6 +125,12 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 		return connect.NewError(connect.CodeInternal, err)
 	}
 
+	// Resolve model: agent.Model if set, else default
+	model := s.defaultModel
+	if agent.Model != "" {
+		model = agent.Model
+	}
+
 	// Get existing messages for conversation history
 	existingMsgs, err := s.queries.GetMessagesByConversation(ctx, conv.ID)
 	if err != nil {
@@ -203,7 +209,7 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 
 	// Build initial OpenRouter request
 	orReq := &openrouter.ResponseRequest{
-		Model:        s.model,
+		Model:        model,
 		Input:        inputs,
 		Instructions: agent.SystemPrompt,
 		Tools:        tools,
@@ -367,7 +373,7 @@ func (s *Service) finishChat(
 	// Generate title if this is the first turn
 	var title string
 	if conv.Title == "" {
-		generated, err := s.orClient.GenerateTitle(ctx, s.model, userMsgContent, content)
+		generated, err := s.orClient.GenerateTitle(ctx, s.defaultModel, userMsgContent, content)
 		if err != nil {
 			log.Printf("Failed to generate title: %v", err)
 		} else {

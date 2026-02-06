@@ -17,6 +17,7 @@ type Agent struct {
 	CreatedAt                   string
 	UpdatedAt                   string
 	EnabledNotificationChannels string
+	Model                       string
 }
 
 type Conversation struct {
@@ -58,6 +59,7 @@ type Trigger struct {
 	NextRunAt sql.NullString
 	CreatedAt string
 	UpdatedAt string
+	Model     string
 }
 
 type TriggerRun struct {

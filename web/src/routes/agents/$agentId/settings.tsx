@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,15 +12,30 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	getAgent,
+	listModels,
 	updateAgent,
 } from "@/lib/rpc/agent/agent-AgentService_connectquery";
 import { listNotificationChannels } from "@/lib/rpc/notification/notification-NotificationChannelService_connectquery";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/agents/$agentId/settings")({
 	component: AgentPage,
@@ -29,6 +45,7 @@ function AgentPage() {
 	const { agentId } = Route.useParams();
 	const { data: agent, isLoading, error } = useQuery(getAgent, { id: agentId });
 	const { data: channelsData } = useQuery(listNotificationChannels, {});
+	const { data: modelsData } = useQuery(listModels, {});
 	const updateMutation = useMutation(updateAgent);
 
 	const [name, setName] = useState("");
@@ -37,6 +54,8 @@ function AgentPage() {
 	const [enabledTools, setEnabledTools] = useState<string[]>([]);
 	const [enabledNotificationChannels, setEnabledNotificationChannels] =
 		useState<string[]>([]);
+	const [model, setModel] = useState("");
+	const [modelOpen, setModelOpen] = useState(false);
 
 	useEffect(() => {
 		if (agent) {
@@ -45,6 +64,7 @@ function AgentPage() {
 			setSystemPrompt(agent.systemPrompt);
 			setEnabledTools(agent.enabledTools || []);
 			setEnabledNotificationChannels(agent.enabledNotificationChannels || []);
+			setModel(agent.model);
 		}
 	}, [agent]);
 
@@ -58,6 +78,7 @@ function AgentPage() {
 				systemPrompt,
 				enabledTools,
 				enabledNotificationChannels,
+				model,
 			});
 			toast.success("Agent updated");
 		} catch {
@@ -166,6 +187,90 @@ function AgentPage() {
 							/>
 							<p className="text-xs text-muted-foreground">
 								Define the agent's personality, capabilities, and constraints
+							</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label>Model</Label>
+							<Popover open={modelOpen} onOpenChange={setModelOpen}>
+								<PopoverTrigger asChild>
+									<Button
+										variant="outline"
+										role="combobox"
+										aria-expanded={modelOpen}
+										className="w-full justify-between font-normal"
+									>
+										{model
+											? (modelsData?.models.find((m) => m.id === model)?.name ??
+												model)
+											: "Default"}
+										<ChevronsUpDown className="opacity-50" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent
+									className="w-[--radix-popover-trigger-width] p-0"
+									align="start"
+								>
+									<Command>
+										<CommandInput placeholder="Search models..." />
+										<CommandList>
+											<CommandEmpty>No model found.</CommandEmpty>
+											<CommandGroup>
+												<CommandItem
+													value="default"
+													onSelect={() => {
+														setModel("");
+														setModelOpen(false);
+													}}
+												>
+													Default
+													<Check
+														className={cn(
+															"ml-auto",
+															model === "" ? "opacity-100" : "opacity-0",
+														)}
+													/>
+												</CommandItem>
+												{modelsData?.models.map((m) => (
+													<CommandItem
+														key={m.id}
+														value={m.id}
+														keywords={[m.name]}
+														onSelect={(value) => {
+															setModel(value === model ? "" : value);
+															setModelOpen(false);
+														}}
+													>
+														<div className="flex flex-col">
+															<span>{m.name}</span>
+															<span className="text-xs text-muted-foreground">
+																{m.id}
+																{" — "}$
+																{(Number(m.promptPricing) * 1_000_000).toFixed(
+																	2,
+																)}{" "}
+																/ $
+																{(
+																	Number(m.completionPricing) * 1_000_000
+																).toFixed(2)}{" "}
+																per M tokens
+															</span>
+														</div>
+														<Check
+															className={cn(
+																"ml-auto shrink-0",
+																model === m.id ? "opacity-100" : "opacity-0",
+															)}
+														/>
+													</CommandItem>
+												))}
+											</CommandGroup>
+										</CommandList>
+									</Command>
+								</PopoverContent>
+							</Popover>
+							<p className="text-xs text-muted-foreground">
+								Leave as "Default" to use the server's default model
 							</p>
 						</div>
 

@@ -11,16 +11,19 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/dstotijn/blippy/internal/openrouter"
 	"github.com/dstotijn/blippy/internal/store"
 )
 
 type Service struct {
-	queries *store.Queries
+	queries  *store.Queries
+	orClient *openrouter.Client
 }
 
-func NewService(db *sql.DB) *Service {
+func NewService(db *sql.DB, orClient *openrouter.Client) *Service {
 	return &Service{
-		queries: store.New(db),
+		queries:  store.New(db),
+		orClient: orClient,
 	}
 }
 
@@ -44,6 +47,7 @@ func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAg
 		SystemPrompt:                req.Msg.SystemPrompt,
 		EnabledTools:                string(enabledTools),
 		EnabledNotificationChannels: string(enabledNotificationChannels),
+		Model:                       req.Msg.Model,
 		CreatedAt:                   now.Format(time.RFC3339),
 		UpdatedAt:                   now.Format(time.RFC3339),
 	})
@@ -98,6 +102,7 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 		SystemPrompt:                req.Msg.SystemPrompt,
 		EnabledTools:                string(enabledTools),
 		EnabledNotificationChannels: string(enabledNotificationChannels),
+		Model:                       req.Msg.Model,
 		UpdatedAt:                   time.Now().UTC().Format(time.RFC3339),
 	})
 	if err != nil {
@@ -118,6 +123,25 @@ func (s *Service) DeleteAgent(ctx context.Context, req *connect.Request[DeleteAg
 	return connect.NewResponse(&Empty{}), nil
 }
 
+func (s *Service) ListModels(ctx context.Context, req *connect.Request[ListModelsRequest]) (*connect.Response[ListModelsResponse], error) {
+	models, err := s.orClient.ListModels(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	protoModels := make([]*Model, len(models))
+	for i, m := range models {
+		protoModels[i] = &Model{
+			Id:               m.ID,
+			Name:             m.Name,
+			PromptPricing:    m.PromptPricing,
+			CompletionPricing: m.CompletionPricing,
+		}
+	}
+
+	return connect.NewResponse(&ListModelsResponse{Models: protoModels}), nil
+}
+
 func toProtoAgent(a store.Agent) *Agent {
 	var enabledTools []string
 	_ = json.Unmarshal([]byte(a.EnabledTools), &enabledTools)
@@ -135,6 +159,7 @@ func toProtoAgent(a store.Agent) *Agent {
 		SystemPrompt:                a.SystemPrompt,
 		EnabledTools:                enabledTools,
 		EnabledNotificationChannels: enabledNotificationChannels,
+		Model:                       a.Model,
 		CreatedAt:                   timestamppb.New(createdAt),
 		UpdatedAt:                   timestamppb.New(updatedAt),
 	}

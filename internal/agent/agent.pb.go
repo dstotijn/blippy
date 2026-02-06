@@ -32,6 +32,7 @@ type Agent struct {
 	EnabledNotificationChannels []string               `protobuf:"bytes,6,rep,name=enabled_notification_channels,json=enabledNotificationChannels,proto3" json:"enabled_notification_channels,omitempty"` // Channel IDs
 	CreatedAt                   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt                   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Model                       string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -122,6 +123,13 @@ func (x *Agent) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Agent) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
 type CreateAgentRequest struct {
 	state                       protoimpl.MessageState `protogen:"open.v1"`
 	Name                        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -129,6 +137,7 @@ type CreateAgentRequest struct {
 	SystemPrompt                string                 `protobuf:"bytes,3,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
 	EnabledTools                []string               `protobuf:"bytes,4,rep,name=enabled_tools,json=enabledTools,proto3" json:"enabled_tools,omitempty"`
 	EnabledNotificationChannels []string               `protobuf:"bytes,5,rep,name=enabled_notification_channels,json=enabledNotificationChannels,proto3" json:"enabled_notification_channels,omitempty"`
+	Model                       string                 `protobuf:"bytes,6,opt,name=model,proto3" json:"model,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -196,6 +205,13 @@ func (x *CreateAgentRequest) GetEnabledNotificationChannels() []string {
 		return x.EnabledNotificationChannels
 	}
 	return nil
+}
+
+func (x *CreateAgentRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
 }
 
 type GetAgentRequest struct {
@@ -330,6 +346,7 @@ type UpdateAgentRequest struct {
 	SystemPrompt                string                 `protobuf:"bytes,4,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
 	EnabledTools                []string               `protobuf:"bytes,5,rep,name=enabled_tools,json=enabledTools,proto3" json:"enabled_tools,omitempty"`
 	EnabledNotificationChannels []string               `protobuf:"bytes,6,rep,name=enabled_notification_channels,json=enabledNotificationChannels,proto3" json:"enabled_notification_channels,omitempty"`
+	Model                       string                 `protobuf:"bytes,7,opt,name=model,proto3" json:"model,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -404,6 +421,13 @@ func (x *UpdateAgentRequest) GetEnabledNotificationChannels() []string {
 		return x.EnabledNotificationChannels
 	}
 	return nil
+}
+
+func (x *UpdateAgentRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
 }
 
 type DeleteAgentRequest struct {
@@ -486,11 +510,159 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_agent_agent_proto_rawDescGZIP(), []int{7}
 }
 
+type Model struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	PromptPricing     string                 `protobuf:"bytes,3,opt,name=prompt_pricing,json=promptPricing,proto3" json:"prompt_pricing,omitempty"`
+	CompletionPricing string                 `protobuf:"bytes,4,opt,name=completion_pricing,json=completionPricing,proto3" json:"completion_pricing,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *Model) Reset() {
+	*x = Model{}
+	mi := &file_agent_agent_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Model) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Model) ProtoMessage() {}
+
+func (x *Model) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_agent_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Model.ProtoReflect.Descriptor instead.
+func (*Model) Descriptor() ([]byte, []int) {
+	return file_agent_agent_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Model) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Model) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Model) GetPromptPricing() string {
+	if x != nil {
+		return x.PromptPricing
+	}
+	return ""
+}
+
+func (x *Model) GetCompletionPricing() string {
+	if x != nil {
+		return x.CompletionPricing
+	}
+	return ""
+}
+
+type ListModelsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListModelsRequest) Reset() {
+	*x = ListModelsRequest{}
+	mi := &file_agent_agent_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListModelsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListModelsRequest) ProtoMessage() {}
+
+func (x *ListModelsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_agent_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListModelsRequest.ProtoReflect.Descriptor instead.
+func (*ListModelsRequest) Descriptor() ([]byte, []int) {
+	return file_agent_agent_proto_rawDescGZIP(), []int{9}
+}
+
+type ListModelsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Models        []*Model               `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListModelsResponse) Reset() {
+	*x = ListModelsResponse{}
+	mi := &file_agent_agent_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListModelsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListModelsResponse) ProtoMessage() {}
+
+func (x *ListModelsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_agent_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListModelsResponse.ProtoReflect.Descriptor instead.
+func (*ListModelsResponse) Descriptor() ([]byte, []int) {
+	return file_agent_agent_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListModelsResponse) GetModels() []*Model {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
 var File_agent_agent_proto protoreflect.FileDescriptor
 
 const file_agent_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x11agent/agent.proto\x12\fblippy.agent\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd1\x02\n" +
+	"\x11agent/agent.proto\x12\fblippy.agent\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe7\x02\n" +
 	"\x05Agent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -501,35 +673,48 @@ const file_agent_agent_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xd8\x01\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x14\n" +
+	"\x05model\x18\t \x01(\tR\x05model\"\xee\x01\n" +
 	"\x12CreateAgentRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12#\n" +
 	"\rsystem_prompt\x18\x03 \x01(\tR\fsystemPrompt\x12#\n" +
 	"\renabled_tools\x18\x04 \x03(\tR\fenabledTools\x12B\n" +
-	"\x1denabled_notification_channels\x18\x05 \x03(\tR\x1benabledNotificationChannels\"!\n" +
+	"\x1denabled_notification_channels\x18\x05 \x03(\tR\x1benabledNotificationChannels\x12\x14\n" +
+	"\x05model\x18\x06 \x01(\tR\x05model\"!\n" +
 	"\x0fGetAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x13\n" +
 	"\x11ListAgentsRequest\"A\n" +
 	"\x12ListAgentsResponse\x12+\n" +
-	"\x06agents\x18\x01 \x03(\v2\x13.blippy.agent.AgentR\x06agents\"\xe8\x01\n" +
+	"\x06agents\x18\x01 \x03(\v2\x13.blippy.agent.AgentR\x06agents\"\xfe\x01\n" +
 	"\x12UpdateAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12#\n" +
 	"\rsystem_prompt\x18\x04 \x01(\tR\fsystemPrompt\x12#\n" +
 	"\renabled_tools\x18\x05 \x03(\tR\fenabledTools\x12B\n" +
-	"\x1denabled_notification_channels\x18\x06 \x03(\tR\x1benabledNotificationChannels\"$\n" +
+	"\x1denabled_notification_channels\x18\x06 \x03(\tR\x1benabledNotificationChannels\x12\x14\n" +
+	"\x05model\x18\a \x01(\tR\x05model\"$\n" +
 	"\x12DeleteAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\a\n" +
-	"\x05Empty2\xf1\x02\n" +
+	"\x05Empty\"\x81\x01\n" +
+	"\x05Model\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12%\n" +
+	"\x0eprompt_pricing\x18\x03 \x01(\tR\rpromptPricing\x12-\n" +
+	"\x12completion_pricing\x18\x04 \x01(\tR\x11completionPricing\"\x13\n" +
+	"\x11ListModelsRequest\"A\n" +
+	"\x12ListModelsResponse\x12+\n" +
+	"\x06models\x18\x01 \x03(\v2\x13.blippy.agent.ModelR\x06models2\xc2\x03\n" +
 	"\fAgentService\x12D\n" +
 	"\vCreateAgent\x12 .blippy.agent.CreateAgentRequest\x1a\x13.blippy.agent.Agent\x12>\n" +
 	"\bGetAgent\x12\x1d.blippy.agent.GetAgentRequest\x1a\x13.blippy.agent.Agent\x12O\n" +
 	"\n" +
 	"ListAgents\x12\x1f.blippy.agent.ListAgentsRequest\x1a .blippy.agent.ListAgentsResponse\x12D\n" +
 	"\vUpdateAgent\x12 .blippy.agent.UpdateAgentRequest\x1a\x13.blippy.agent.Agent\x12D\n" +
-	"\vDeleteAgent\x12 .blippy.agent.DeleteAgentRequest\x1a\x13.blippy.agent.EmptyB+Z)github.com/dstotijn/blippy/internal/agentb\x06proto3"
+	"\vDeleteAgent\x12 .blippy.agent.DeleteAgentRequest\x1a\x13.blippy.agent.Empty\x12O\n" +
+	"\n" +
+	"ListModels\x12\x1f.blippy.agent.ListModelsRequest\x1a .blippy.agent.ListModelsResponseB+Z)github.com/dstotijn/blippy/internal/agentb\x06proto3"
 
 var (
 	file_agent_agent_proto_rawDescOnce sync.Once
@@ -543,7 +728,7 @@ func file_agent_agent_proto_rawDescGZIP() []byte {
 	return file_agent_agent_proto_rawDescData
 }
 
-var file_agent_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_agent_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_agent_agent_proto_goTypes = []any{
 	(*Agent)(nil),                 // 0: blippy.agent.Agent
 	(*CreateAgentRequest)(nil),    // 1: blippy.agent.CreateAgentRequest
@@ -553,27 +738,33 @@ var file_agent_agent_proto_goTypes = []any{
 	(*UpdateAgentRequest)(nil),    // 5: blippy.agent.UpdateAgentRequest
 	(*DeleteAgentRequest)(nil),    // 6: blippy.agent.DeleteAgentRequest
 	(*Empty)(nil),                 // 7: blippy.agent.Empty
-	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*Model)(nil),                 // 8: blippy.agent.Model
+	(*ListModelsRequest)(nil),     // 9: blippy.agent.ListModelsRequest
+	(*ListModelsResponse)(nil),    // 10: blippy.agent.ListModelsResponse
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_agent_agent_proto_depIdxs = []int32{
-	8, // 0: blippy.agent.Agent.created_at:type_name -> google.protobuf.Timestamp
-	8, // 1: blippy.agent.Agent.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 2: blippy.agent.ListAgentsResponse.agents:type_name -> blippy.agent.Agent
-	1, // 3: blippy.agent.AgentService.CreateAgent:input_type -> blippy.agent.CreateAgentRequest
-	2, // 4: blippy.agent.AgentService.GetAgent:input_type -> blippy.agent.GetAgentRequest
-	3, // 5: blippy.agent.AgentService.ListAgents:input_type -> blippy.agent.ListAgentsRequest
-	5, // 6: blippy.agent.AgentService.UpdateAgent:input_type -> blippy.agent.UpdateAgentRequest
-	6, // 7: blippy.agent.AgentService.DeleteAgent:input_type -> blippy.agent.DeleteAgentRequest
-	0, // 8: blippy.agent.AgentService.CreateAgent:output_type -> blippy.agent.Agent
-	0, // 9: blippy.agent.AgentService.GetAgent:output_type -> blippy.agent.Agent
-	4, // 10: blippy.agent.AgentService.ListAgents:output_type -> blippy.agent.ListAgentsResponse
-	0, // 11: blippy.agent.AgentService.UpdateAgent:output_type -> blippy.agent.Agent
-	7, // 12: blippy.agent.AgentService.DeleteAgent:output_type -> blippy.agent.Empty
-	8, // [8:13] is the sub-list for method output_type
-	3, // [3:8] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	11, // 0: blippy.agent.Agent.created_at:type_name -> google.protobuf.Timestamp
+	11, // 1: blippy.agent.Agent.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 2: blippy.agent.ListAgentsResponse.agents:type_name -> blippy.agent.Agent
+	8,  // 3: blippy.agent.ListModelsResponse.models:type_name -> blippy.agent.Model
+	1,  // 4: blippy.agent.AgentService.CreateAgent:input_type -> blippy.agent.CreateAgentRequest
+	2,  // 5: blippy.agent.AgentService.GetAgent:input_type -> blippy.agent.GetAgentRequest
+	3,  // 6: blippy.agent.AgentService.ListAgents:input_type -> blippy.agent.ListAgentsRequest
+	5,  // 7: blippy.agent.AgentService.UpdateAgent:input_type -> blippy.agent.UpdateAgentRequest
+	6,  // 8: blippy.agent.AgentService.DeleteAgent:input_type -> blippy.agent.DeleteAgentRequest
+	9,  // 9: blippy.agent.AgentService.ListModels:input_type -> blippy.agent.ListModelsRequest
+	0,  // 10: blippy.agent.AgentService.CreateAgent:output_type -> blippy.agent.Agent
+	0,  // 11: blippy.agent.AgentService.GetAgent:output_type -> blippy.agent.Agent
+	4,  // 12: blippy.agent.AgentService.ListAgents:output_type -> blippy.agent.ListAgentsResponse
+	0,  // 13: blippy.agent.AgentService.UpdateAgent:output_type -> blippy.agent.Agent
+	7,  // 14: blippy.agent.AgentService.DeleteAgent:output_type -> blippy.agent.Empty
+	10, // 15: blippy.agent.AgentService.ListModels:output_type -> blippy.agent.ListModelsResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_agent_agent_proto_init() }
@@ -587,7 +778,7 @@ func file_agent_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_agent_agent_proto_rawDesc), len(file_agent_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

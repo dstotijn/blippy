@@ -45,6 +45,8 @@ const (
 	// AgentServiceDeleteAgentProcedure is the fully-qualified name of the AgentService's DeleteAgent
 	// RPC.
 	AgentServiceDeleteAgentProcedure = "/blippy.agent.AgentService/DeleteAgent"
+	// AgentServiceListModelsProcedure is the fully-qualified name of the AgentService's ListModels RPC.
+	AgentServiceListModelsProcedure = "/blippy.agent.AgentService/ListModels"
 )
 
 // AgentServiceClient is a client for the blippy.agent.AgentService service.
@@ -54,6 +56,7 @@ type AgentServiceClient interface {
 	ListAgents(context.Context, *connect.Request[ListAgentsRequest]) (*connect.Response[ListAgentsResponse], error)
 	UpdateAgent(context.Context, *connect.Request[UpdateAgentRequest]) (*connect.Response[Agent], error)
 	DeleteAgent(context.Context, *connect.Request[DeleteAgentRequest]) (*connect.Response[Empty], error)
+	ListModels(context.Context, *connect.Request[ListModelsRequest]) (*connect.Response[ListModelsResponse], error)
 }
 
 // NewAgentServiceClient constructs a client for the blippy.agent.AgentService service. By default,
@@ -97,6 +100,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("DeleteAgent")),
 			connect.WithClientOptions(opts...),
 		),
+		listModels: connect.NewClient[ListModelsRequest, ListModelsResponse](
+			httpClient,
+			baseURL+AgentServiceListModelsProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("ListModels")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -107,6 +116,7 @@ type agentServiceClient struct {
 	listAgents  *connect.Client[ListAgentsRequest, ListAgentsResponse]
 	updateAgent *connect.Client[UpdateAgentRequest, Agent]
 	deleteAgent *connect.Client[DeleteAgentRequest, Empty]
+	listModels  *connect.Client[ListModelsRequest, ListModelsResponse]
 }
 
 // CreateAgent calls blippy.agent.AgentService.CreateAgent.
@@ -134,6 +144,11 @@ func (c *agentServiceClient) DeleteAgent(ctx context.Context, req *connect.Reque
 	return c.deleteAgent.CallUnary(ctx, req)
 }
 
+// ListModels calls blippy.agent.AgentService.ListModels.
+func (c *agentServiceClient) ListModels(ctx context.Context, req *connect.Request[ListModelsRequest]) (*connect.Response[ListModelsResponse], error) {
+	return c.listModels.CallUnary(ctx, req)
+}
+
 // AgentServiceHandler is an implementation of the blippy.agent.AgentService service.
 type AgentServiceHandler interface {
 	CreateAgent(context.Context, *connect.Request[CreateAgentRequest]) (*connect.Response[Agent], error)
@@ -141,6 +156,7 @@ type AgentServiceHandler interface {
 	ListAgents(context.Context, *connect.Request[ListAgentsRequest]) (*connect.Response[ListAgentsResponse], error)
 	UpdateAgent(context.Context, *connect.Request[UpdateAgentRequest]) (*connect.Response[Agent], error)
 	DeleteAgent(context.Context, *connect.Request[DeleteAgentRequest]) (*connect.Response[Empty], error)
+	ListModels(context.Context, *connect.Request[ListModelsRequest]) (*connect.Response[ListModelsResponse], error)
 }
 
 // NewAgentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -180,6 +196,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(agentServiceMethods.ByName("DeleteAgent")),
 		connect.WithHandlerOptions(opts...),
 	)
+	agentServiceListModelsHandler := connect.NewUnaryHandler(
+		AgentServiceListModelsProcedure,
+		svc.ListModels,
+		connect.WithSchema(agentServiceMethods.ByName("ListModels")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/blippy.agent.AgentService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AgentServiceCreateAgentProcedure:
@@ -192,6 +214,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceUpdateAgentHandler.ServeHTTP(w, r)
 		case AgentServiceDeleteAgentProcedure:
 			agentServiceDeleteAgentHandler.ServeHTTP(w, r)
+		case AgentServiceListModelsProcedure:
+			agentServiceListModelsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -219,4 +243,8 @@ func (UnimplementedAgentServiceHandler) UpdateAgent(context.Context, *connect.Re
 
 func (UnimplementedAgentServiceHandler) DeleteAgent(context.Context, *connect.Request[DeleteAgentRequest]) (*connect.Response[Empty], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blippy.agent.AgentService.DeleteAgent is not implemented"))
+}
+
+func (UnimplementedAgentServiceHandler) ListModels(context.Context, *connect.Request[ListModelsRequest]) (*connect.Response[ListModelsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blippy.agent.AgentService.ListModels is not implemented"))
 }

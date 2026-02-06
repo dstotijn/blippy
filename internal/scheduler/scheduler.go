@@ -148,6 +148,7 @@ func (s *Scheduler) executeTrigger(ctx context.Context, trigger store.Trigger) e
 		AgentID: trigger.AgentID,
 		Prompt:  trigger.Prompt,
 		Depth:   0,
+		Model:   trigger.Model,
 	})
 
 	// Update trigger run with result
