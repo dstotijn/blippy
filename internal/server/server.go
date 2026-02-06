@@ -30,17 +30,21 @@ func New(
 
 	opts := []connect.HandlerOption{connect.WithCompressMinBytes(1024)}
 
+	apiMux := http.NewServeMux()
+
 	agentPath, agentHandler := agent.NewAgentServiceHandler(agentService, opts...)
-	mux.Handle(agentPath, agentHandler)
+	apiMux.Handle(agentPath, agentHandler)
 
 	convPath, convHandler := conversation.NewConversationServiceHandler(conversationService, opts...)
-	mux.Handle(convPath, convHandler)
+	apiMux.Handle(convPath, convHandler)
 
 	triggerPath, triggerHandler := trigger.NewTriggerServiceHandler(triggerService, opts...)
-	mux.Handle(triggerPath, triggerHandler)
+	apiMux.Handle(triggerPath, triggerHandler)
 
 	notificationPath, notificationHandler := notification.NewNotificationChannelServiceHandler(notificationService, opts...)
-	mux.Handle(notificationPath, notificationHandler)
+	apiMux.Handle(notificationPath, notificationHandler)
+
+	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 
 	// Webhook trigger endpoint
 	mux.Handle("/webhooks/trigger", webhookHandler)
