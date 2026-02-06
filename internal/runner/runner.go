@@ -61,6 +61,8 @@ func New(queries *store.Queries, orClient *openrouter.Client, defaultModel strin
 
 // storedToolExec represents a tool execution for JSON storage
 type storedToolExec struct {
+	ID     string `json:"id,omitempty"`
+	CallID string `json:"call_id,omitempty"`
 	Name   string `json:"name"`
 	Input  string `json:"input"`
 	Result string `json:"result"`
@@ -261,10 +263,12 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 					// toolInputs contains pairs: function_call echo, then function_call_output
 					for _, input := range toolInputs {
 						if input.Type == "function_call_output" {
-							// Find the corresponding function_call to get the name and args
+							// Find the corresponding function_call to get the name, args, and ID
 							for _, fc := range toolInputs {
 								if fc.Type == "function_call" && fc.CallID == input.CallID {
 									toolExecs = append(toolExecs, storedToolExec{
+										ID:     fc.ID,
+										CallID: input.CallID,
 										Name:   tool.DecodeToolName(fc.Name),
 										Input:  fc.Arguments,
 										Result: input.Output,

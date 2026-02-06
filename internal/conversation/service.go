@@ -180,10 +180,39 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 				},
 			})
 		} else if msg.Role == "assistant" {
+			// Include tool executions before the assistant text message
+			var msgToolExecs []storedToolExec
+			if msg.ToolExecutions != "" && msg.ToolExecutions != "[]" {
+				_ = json.Unmarshal([]byte(msg.ToolExecutions), &msgToolExecs)
+			}
+			for i, te := range msgToolExecs {
+				callID := te.CallID
+				if callID == "" {
+					callID = fmt.Sprintf("call_%s_%d", msg.ID, i)
+				}
+				fcID := te.ID
+				if fcID == "" {
+					fcID = fmt.Sprintf("fc_%s_%d", msg.ID, i)
+				}
+				inputs = append(inputs, openrouter.Input{
+					Type:      "function_call",
+					ID:        fcID,
+					CallID:    callID,
+					Name:      tool.EncodeToolName(te.Name),
+					Arguments: te.Input,
+				})
+				inputs = append(inputs, openrouter.Input{
+					Type:   "function_call_output",
+					ID:     fmt.Sprintf("fc_out_%s_%d", msg.ID, i),
+					CallID: callID,
+					Output: te.Result,
+				})
+			}
+
 			inputs = append(inputs, openrouter.Input{
 				Type:   "message",
 				Role:   "assistant",
-				ID:     msg.ID, // Use stored message ID
+				ID:     msg.ID,
 				Status: "completed",
 				Content: []openrouter.ContentPart{
 					{Type: "output_text", Text: msg.Content},
@@ -220,6 +249,8 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 
 // storedToolExec represents a tool execution for JSON storage
 type storedToolExec struct {
+	ID     string `json:"id,omitempty"`
+	CallID string `json:"call_id,omitempty"`
 	Name   string `json:"name"`
 	Input  string `json:"input"`
 	Result string `json:"result"`
@@ -276,10 +307,11 @@ func (s *Service) streamWithToolExecution(
 							continue
 						}
 
-						// Find the tool name and arguments from the original output
-						var toolName, toolArgs string
+						// Find the tool name, arguments, and ID from the original output
+						var toolName, toolArgs, toolID string
 						for _, out := range event.Response.Output {
 							if out.Type == "function_call" && out.CallID == input.CallID {
+								toolID = out.ID
 								toolName = tool.DecodeToolName(out.Name)
 								toolArgs = out.Arguments
 								break
@@ -288,6 +320,8 @@ func (s *Service) streamWithToolExecution(
 
 						// Collect for storage
 						toolExecs = append(toolExecs, storedToolExec{
+							ID:     toolID,
+							CallID: input.CallID,
 							Name:   toolName,
 							Input:  toolArgs,
 							Result: input.Output,

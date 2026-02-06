@@ -120,7 +120,7 @@ func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, 
 			t := BuildNotificationTool(channel)
 			tools = append(tools, map[string]any{
 				"type":        "function",
-				"name":        encodeToolName(t.Name),
+				"name":        EncodeToolName(t.Name),
 				"description": t.Description,
 				"parameters":  t.Parameters,
 			})
@@ -130,9 +130,9 @@ func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, 
 	return tools, nil
 }
 
-// encodeToolName converts internal tool names to API-safe names.
+// EncodeToolName converts internal tool names to API-safe names.
 // "notify:foo" becomes "notify__foo".
-func encodeToolName(name string) string {
+func EncodeToolName(name string) string {
 	return strings.ReplaceAll(name, ":", "__")
 }
 
