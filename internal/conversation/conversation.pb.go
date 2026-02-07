@@ -111,9 +111,8 @@ type Message struct {
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ConversationId string                 `protobuf:"bytes,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
 	Role           string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"` // "user", "assistant", "system"
-	Content        string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
 	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ToolExecutions []*StoredToolExecution `protobuf:"bytes,6,rep,name=tool_executions,json=toolExecutions,proto3" json:"tool_executions,omitempty"`
+	Items          []*MessageItem         `protobuf:"bytes,7,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -169,13 +168,6 @@ func (x *Message) GetRole() string {
 	return ""
 }
 
-func (x *Message) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
 func (x *Message) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
@@ -183,36 +175,38 @@ func (x *Message) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Message) GetToolExecutions() []*StoredToolExecution {
+func (x *Message) GetItems() []*MessageItem {
 	if x != nil {
-		return x.ToolExecutions
+		return x.Items
 	}
 	return nil
 }
 
-type StoredToolExecution struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`     // tool name (e.g., "bash")
-	Input         string                 `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`   // tool input/arguments as JSON
-	Result        string                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"` // tool output
+type MessageItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Item:
+	//
+	//	*MessageItem_Text
+	//	*MessageItem_ToolExecution
+	Item          isMessageItem_Item `protobuf_oneof:"item"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StoredToolExecution) Reset() {
-	*x = StoredToolExecution{}
+func (x *MessageItem) Reset() {
+	*x = MessageItem{}
 	mi := &file_conversation_conversation_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StoredToolExecution) String() string {
+func (x *MessageItem) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StoredToolExecution) ProtoMessage() {}
+func (*MessageItem) ProtoMessage() {}
 
-func (x *StoredToolExecution) ProtoReflect() protoreflect.Message {
+func (x *MessageItem) ProtoReflect() protoreflect.Message {
 	mi := &file_conversation_conversation_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -224,26 +218,150 @@ func (x *StoredToolExecution) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StoredToolExecution.ProtoReflect.Descriptor instead.
-func (*StoredToolExecution) Descriptor() ([]byte, []int) {
+// Deprecated: Use MessageItem.ProtoReflect.Descriptor instead.
+func (*MessageItem) Descriptor() ([]byte, []int) {
 	return file_conversation_conversation_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *StoredToolExecution) GetName() string {
+func (x *MessageItem) GetItem() isMessageItem_Item {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+func (x *MessageItem) GetText() *TextItem {
+	if x != nil {
+		if x, ok := x.Item.(*MessageItem_Text); ok {
+			return x.Text
+		}
+	}
+	return nil
+}
+
+func (x *MessageItem) GetToolExecution() *ToolExecutionItem {
+	if x != nil {
+		if x, ok := x.Item.(*MessageItem_ToolExecution); ok {
+			return x.ToolExecution
+		}
+	}
+	return nil
+}
+
+type isMessageItem_Item interface {
+	isMessageItem_Item()
+}
+
+type MessageItem_Text struct {
+	Text *TextItem `protobuf:"bytes,1,opt,name=text,proto3,oneof"`
+}
+
+type MessageItem_ToolExecution struct {
+	ToolExecution *ToolExecutionItem `protobuf:"bytes,2,opt,name=tool_execution,json=toolExecution,proto3,oneof"`
+}
+
+func (*MessageItem_Text) isMessageItem_Item() {}
+
+func (*MessageItem_ToolExecution) isMessageItem_Item() {}
+
+type TextItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextItem) Reset() {
+	*x = TextItem{}
+	mi := &file_conversation_conversation_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TextItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TextItem) ProtoMessage() {}
+
+func (x *TextItem) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TextItem.ProtoReflect.Descriptor instead.
+func (*TextItem) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TextItem) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+type ToolExecutionItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Input         string                 `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
+	Result        string                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolExecutionItem) Reset() {
+	*x = ToolExecutionItem{}
+	mi := &file_conversation_conversation_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolExecutionItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolExecutionItem) ProtoMessage() {}
+
+func (x *ToolExecutionItem) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolExecutionItem.ProtoReflect.Descriptor instead.
+func (*ToolExecutionItem) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ToolExecutionItem) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *StoredToolExecution) GetInput() string {
+func (x *ToolExecutionItem) GetInput() string {
 	if x != nil {
 		return x.Input
 	}
 	return ""
 }
 
-func (x *StoredToolExecution) GetResult() string {
+func (x *ToolExecutionItem) GetResult() string {
 	if x != nil {
 		return x.Result
 	}
@@ -259,7 +377,7 @@ type CreateConversationRequest struct {
 
 func (x *CreateConversationRequest) Reset() {
 	*x = CreateConversationRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[3]
+	mi := &file_conversation_conversation_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -271,7 +389,7 @@ func (x *CreateConversationRequest) String() string {
 func (*CreateConversationRequest) ProtoMessage() {}
 
 func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[3]
+	mi := &file_conversation_conversation_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -284,7 +402,7 @@ func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConversationRequest.ProtoReflect.Descriptor instead.
 func (*CreateConversationRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{3}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateConversationRequest) GetAgentId() string {
@@ -303,7 +421,7 @@ type GetConversationRequest struct {
 
 func (x *GetConversationRequest) Reset() {
 	*x = GetConversationRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[4]
+	mi := &file_conversation_conversation_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +433,7 @@ func (x *GetConversationRequest) String() string {
 func (*GetConversationRequest) ProtoMessage() {}
 
 func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[4]
+	mi := &file_conversation_conversation_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +446,7 @@ func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConversationRequest.ProtoReflect.Descriptor instead.
 func (*GetConversationRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{4}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetConversationRequest) GetId() string {
@@ -347,7 +465,7 @@ type ListConversationsRequest struct {
 
 func (x *ListConversationsRequest) Reset() {
 	*x = ListConversationsRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[5]
+	mi := &file_conversation_conversation_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -359,7 +477,7 @@ func (x *ListConversationsRequest) String() string {
 func (*ListConversationsRequest) ProtoMessage() {}
 
 func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[5]
+	mi := &file_conversation_conversation_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,7 +490,7 @@ func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsRequest.ProtoReflect.Descriptor instead.
 func (*ListConversationsRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{5}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListConversationsRequest) GetAgentId() string {
@@ -391,7 +509,7 @@ type ListConversationsResponse struct {
 
 func (x *ListConversationsResponse) Reset() {
 	*x = ListConversationsResponse{}
-	mi := &file_conversation_conversation_proto_msgTypes[6]
+	mi := &file_conversation_conversation_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -403,7 +521,7 @@ func (x *ListConversationsResponse) String() string {
 func (*ListConversationsResponse) ProtoMessage() {}
 
 func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[6]
+	mi := &file_conversation_conversation_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -416,7 +534,7 @@ func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsResponse.ProtoReflect.Descriptor instead.
 func (*ListConversationsResponse) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{6}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListConversationsResponse) GetConversations() []*Conversation {
@@ -435,7 +553,7 @@ type DeleteConversationRequest struct {
 
 func (x *DeleteConversationRequest) Reset() {
 	*x = DeleteConversationRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[7]
+	mi := &file_conversation_conversation_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +565,7 @@ func (x *DeleteConversationRequest) String() string {
 func (*DeleteConversationRequest) ProtoMessage() {}
 
 func (x *DeleteConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[7]
+	mi := &file_conversation_conversation_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +578,7 @@ func (x *DeleteConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteConversationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteConversationRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{7}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteConversationRequest) GetId() string {
@@ -479,7 +597,7 @@ type GetMessagesRequest struct {
 
 func (x *GetMessagesRequest) Reset() {
 	*x = GetMessagesRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[8]
+	mi := &file_conversation_conversation_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -491,7 +609,7 @@ func (x *GetMessagesRequest) String() string {
 func (*GetMessagesRequest) ProtoMessage() {}
 
 func (x *GetMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[8]
+	mi := &file_conversation_conversation_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -504,7 +622,7 @@ func (x *GetMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessagesRequest.ProtoReflect.Descriptor instead.
 func (*GetMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{8}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetMessagesRequest) GetConversationId() string {
@@ -523,7 +641,7 @@ type GetMessagesResponse struct {
 
 func (x *GetMessagesResponse) Reset() {
 	*x = GetMessagesResponse{}
-	mi := &file_conversation_conversation_proto_msgTypes[9]
+	mi := &file_conversation_conversation_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +653,7 @@ func (x *GetMessagesResponse) String() string {
 func (*GetMessagesResponse) ProtoMessage() {}
 
 func (x *GetMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[9]
+	mi := &file_conversation_conversation_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +666,7 @@ func (x *GetMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessagesResponse.ProtoReflect.Descriptor instead.
 func (*GetMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{9}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetMessagesResponse) GetMessages() []*Message {
@@ -568,7 +686,7 @@ type ChatRequest struct {
 
 func (x *ChatRequest) Reset() {
 	*x = ChatRequest{}
-	mi := &file_conversation_conversation_proto_msgTypes[10]
+	mi := &file_conversation_conversation_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -580,7 +698,7 @@ func (x *ChatRequest) String() string {
 func (*ChatRequest) ProtoMessage() {}
 
 func (x *ChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[10]
+	mi := &file_conversation_conversation_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -593,7 +711,7 @@ func (x *ChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatRequest.ProtoReflect.Descriptor instead.
 func (*ChatRequest) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{10}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ChatRequest) GetConversationId() string {
@@ -626,7 +744,7 @@ type ChatEvent struct {
 
 func (x *ChatEvent) Reset() {
 	*x = ChatEvent{}
-	mi := &file_conversation_conversation_proto_msgTypes[11]
+	mi := &file_conversation_conversation_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -638,7 +756,7 @@ func (x *ChatEvent) String() string {
 func (*ChatEvent) ProtoMessage() {}
 
 func (x *ChatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[11]
+	mi := &file_conversation_conversation_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +769,7 @@ func (x *ChatEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatEvent.ProtoReflect.Descriptor instead.
 func (*ChatEvent) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{11}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ChatEvent) GetEvent() isChatEvent_Event {
@@ -734,7 +852,7 @@ type ChatDelta struct {
 
 func (x *ChatDelta) Reset() {
 	*x = ChatDelta{}
-	mi := &file_conversation_conversation_proto_msgTypes[12]
+	mi := &file_conversation_conversation_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -746,7 +864,7 @@ func (x *ChatDelta) String() string {
 func (*ChatDelta) ProtoMessage() {}
 
 func (x *ChatDelta) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[12]
+	mi := &file_conversation_conversation_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -759,7 +877,7 @@ func (x *ChatDelta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatDelta.ProtoReflect.Descriptor instead.
 func (*ChatDelta) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{12}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ChatDelta) GetContent() string {
@@ -781,7 +899,7 @@ type ChatDone struct {
 
 func (x *ChatDone) Reset() {
 	*x = ChatDone{}
-	mi := &file_conversation_conversation_proto_msgTypes[13]
+	mi := &file_conversation_conversation_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -793,7 +911,7 @@ func (x *ChatDone) String() string {
 func (*ChatDone) ProtoMessage() {}
 
 func (x *ChatDone) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[13]
+	mi := &file_conversation_conversation_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -806,7 +924,7 @@ func (x *ChatDone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatDone.ProtoReflect.Descriptor instead.
 func (*ChatDone) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{13}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ChatDone) GetUserMessageId() string {
@@ -846,7 +964,7 @@ type ChatError struct {
 
 func (x *ChatError) Reset() {
 	*x = ChatError{}
-	mi := &file_conversation_conversation_proto_msgTypes[14]
+	mi := &file_conversation_conversation_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -858,7 +976,7 @@ func (x *ChatError) String() string {
 func (*ChatError) ProtoMessage() {}
 
 func (x *ChatError) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[14]
+	mi := &file_conversation_conversation_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -871,7 +989,7 @@ func (x *ChatError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatError.ProtoReflect.Descriptor instead.
 func (*ChatError) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{14}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ChatError) GetMessage() string {
@@ -893,7 +1011,7 @@ type ToolExecution struct {
 
 func (x *ToolExecution) Reset() {
 	*x = ToolExecution{}
-	mi := &file_conversation_conversation_proto_msgTypes[15]
+	mi := &file_conversation_conversation_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -905,7 +1023,7 @@ func (x *ToolExecution) String() string {
 func (*ToolExecution) ProtoMessage() {}
 
 func (x *ToolExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[15]
+	mi := &file_conversation_conversation_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,7 +1036,7 @@ func (x *ToolExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolExecution.ProtoReflect.Descriptor instead.
 func (*ToolExecution) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{15}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ToolExecution) GetName() string {
@@ -957,7 +1075,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_conversation_conversation_proto_msgTypes[16]
+	mi := &file_conversation_conversation_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -969,7 +1087,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[16]
+	mi := &file_conversation_conversation_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -982,7 +1100,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{16}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{18}
 }
 
 var File_conversation_conversation_proto protoreflect.FileDescriptor
@@ -998,16 +1116,21 @@ const file_conversation_conversation_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xfe\x01\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc9\x01\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x12\n" +
-	"\x04role\x18\x03 \x01(\tR\x04role\x12\x18\n" +
-	"\acontent\x18\x04 \x01(\tR\acontent\x129\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12Q\n" +
-	"\x0ftool_executions\x18\x06 \x03(\v2(.blippy.conversation.StoredToolExecutionR\x0etoolExecutions\"W\n" +
-	"\x13StoredToolExecution\x12\x12\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x126\n" +
+	"\x05items\x18\a \x03(\v2 .blippy.conversation.MessageItemR\x05items\"\x9b\x01\n" +
+	"\vMessageItem\x123\n" +
+	"\x04text\x18\x01 \x01(\v2\x1d.blippy.conversation.TextItemH\x00R\x04text\x12O\n" +
+	"\x0etool_execution\x18\x02 \x01(\v2&.blippy.conversation.ToolExecutionItemH\x00R\rtoolExecutionB\x06\n" +
+	"\x04item\"$\n" +
+	"\bTextItem\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\"U\n" +
+	"\x11ToolExecutionItem\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05input\x18\x02 \x01(\tR\x05input\x12\x16\n" +
 	"\x06result\x18\x03 \x01(\tR\x06result\"6\n" +
@@ -1070,55 +1193,59 @@ func file_conversation_conversation_proto_rawDescGZIP() []byte {
 	return file_conversation_conversation_proto_rawDescData
 }
 
-var file_conversation_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_conversation_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_conversation_conversation_proto_goTypes = []any{
 	(*Conversation)(nil),              // 0: blippy.conversation.Conversation
 	(*Message)(nil),                   // 1: blippy.conversation.Message
-	(*StoredToolExecution)(nil),       // 2: blippy.conversation.StoredToolExecution
-	(*CreateConversationRequest)(nil), // 3: blippy.conversation.CreateConversationRequest
-	(*GetConversationRequest)(nil),    // 4: blippy.conversation.GetConversationRequest
-	(*ListConversationsRequest)(nil),  // 5: blippy.conversation.ListConversationsRequest
-	(*ListConversationsResponse)(nil), // 6: blippy.conversation.ListConversationsResponse
-	(*DeleteConversationRequest)(nil), // 7: blippy.conversation.DeleteConversationRequest
-	(*GetMessagesRequest)(nil),        // 8: blippy.conversation.GetMessagesRequest
-	(*GetMessagesResponse)(nil),       // 9: blippy.conversation.GetMessagesResponse
-	(*ChatRequest)(nil),               // 10: blippy.conversation.ChatRequest
-	(*ChatEvent)(nil),                 // 11: blippy.conversation.ChatEvent
-	(*ChatDelta)(nil),                 // 12: blippy.conversation.ChatDelta
-	(*ChatDone)(nil),                  // 13: blippy.conversation.ChatDone
-	(*ChatError)(nil),                 // 14: blippy.conversation.ChatError
-	(*ToolExecution)(nil),             // 15: blippy.conversation.ToolExecution
-	(*Empty)(nil),                     // 16: blippy.conversation.Empty
-	(*timestamppb.Timestamp)(nil),     // 17: google.protobuf.Timestamp
+	(*MessageItem)(nil),               // 2: blippy.conversation.MessageItem
+	(*TextItem)(nil),                  // 3: blippy.conversation.TextItem
+	(*ToolExecutionItem)(nil),         // 4: blippy.conversation.ToolExecutionItem
+	(*CreateConversationRequest)(nil), // 5: blippy.conversation.CreateConversationRequest
+	(*GetConversationRequest)(nil),    // 6: blippy.conversation.GetConversationRequest
+	(*ListConversationsRequest)(nil),  // 7: blippy.conversation.ListConversationsRequest
+	(*ListConversationsResponse)(nil), // 8: blippy.conversation.ListConversationsResponse
+	(*DeleteConversationRequest)(nil), // 9: blippy.conversation.DeleteConversationRequest
+	(*GetMessagesRequest)(nil),        // 10: blippy.conversation.GetMessagesRequest
+	(*GetMessagesResponse)(nil),       // 11: blippy.conversation.GetMessagesResponse
+	(*ChatRequest)(nil),               // 12: blippy.conversation.ChatRequest
+	(*ChatEvent)(nil),                 // 13: blippy.conversation.ChatEvent
+	(*ChatDelta)(nil),                 // 14: blippy.conversation.ChatDelta
+	(*ChatDone)(nil),                  // 15: blippy.conversation.ChatDone
+	(*ChatError)(nil),                 // 16: blippy.conversation.ChatError
+	(*ToolExecution)(nil),             // 17: blippy.conversation.ToolExecution
+	(*Empty)(nil),                     // 18: blippy.conversation.Empty
+	(*timestamppb.Timestamp)(nil),     // 19: google.protobuf.Timestamp
 }
 var file_conversation_conversation_proto_depIdxs = []int32{
-	17, // 0: blippy.conversation.Conversation.created_at:type_name -> google.protobuf.Timestamp
-	17, // 1: blippy.conversation.Conversation.updated_at:type_name -> google.protobuf.Timestamp
-	17, // 2: blippy.conversation.Message.created_at:type_name -> google.protobuf.Timestamp
-	2,  // 3: blippy.conversation.Message.tool_executions:type_name -> blippy.conversation.StoredToolExecution
-	0,  // 4: blippy.conversation.ListConversationsResponse.conversations:type_name -> blippy.conversation.Conversation
-	1,  // 5: blippy.conversation.GetMessagesResponse.messages:type_name -> blippy.conversation.Message
-	12, // 6: blippy.conversation.ChatEvent.delta:type_name -> blippy.conversation.ChatDelta
-	13, // 7: blippy.conversation.ChatEvent.done:type_name -> blippy.conversation.ChatDone
-	14, // 8: blippy.conversation.ChatEvent.error:type_name -> blippy.conversation.ChatError
-	15, // 9: blippy.conversation.ChatEvent.tool_execution:type_name -> blippy.conversation.ToolExecution
-	3,  // 10: blippy.conversation.ConversationService.CreateConversation:input_type -> blippy.conversation.CreateConversationRequest
-	4,  // 11: blippy.conversation.ConversationService.GetConversation:input_type -> blippy.conversation.GetConversationRequest
-	5,  // 12: blippy.conversation.ConversationService.ListConversations:input_type -> blippy.conversation.ListConversationsRequest
-	7,  // 13: blippy.conversation.ConversationService.DeleteConversation:input_type -> blippy.conversation.DeleteConversationRequest
-	8,  // 14: blippy.conversation.ConversationService.GetMessages:input_type -> blippy.conversation.GetMessagesRequest
-	10, // 15: blippy.conversation.ConversationService.Chat:input_type -> blippy.conversation.ChatRequest
-	0,  // 16: blippy.conversation.ConversationService.CreateConversation:output_type -> blippy.conversation.Conversation
-	0,  // 17: blippy.conversation.ConversationService.GetConversation:output_type -> blippy.conversation.Conversation
-	6,  // 18: blippy.conversation.ConversationService.ListConversations:output_type -> blippy.conversation.ListConversationsResponse
-	16, // 19: blippy.conversation.ConversationService.DeleteConversation:output_type -> blippy.conversation.Empty
-	9,  // 20: blippy.conversation.ConversationService.GetMessages:output_type -> blippy.conversation.GetMessagesResponse
-	11, // 21: blippy.conversation.ConversationService.Chat:output_type -> blippy.conversation.ChatEvent
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	19, // 0: blippy.conversation.Conversation.created_at:type_name -> google.protobuf.Timestamp
+	19, // 1: blippy.conversation.Conversation.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 2: blippy.conversation.Message.created_at:type_name -> google.protobuf.Timestamp
+	2,  // 3: blippy.conversation.Message.items:type_name -> blippy.conversation.MessageItem
+	3,  // 4: blippy.conversation.MessageItem.text:type_name -> blippy.conversation.TextItem
+	4,  // 5: blippy.conversation.MessageItem.tool_execution:type_name -> blippy.conversation.ToolExecutionItem
+	0,  // 6: blippy.conversation.ListConversationsResponse.conversations:type_name -> blippy.conversation.Conversation
+	1,  // 7: blippy.conversation.GetMessagesResponse.messages:type_name -> blippy.conversation.Message
+	14, // 8: blippy.conversation.ChatEvent.delta:type_name -> blippy.conversation.ChatDelta
+	15, // 9: blippy.conversation.ChatEvent.done:type_name -> blippy.conversation.ChatDone
+	16, // 10: blippy.conversation.ChatEvent.error:type_name -> blippy.conversation.ChatError
+	17, // 11: blippy.conversation.ChatEvent.tool_execution:type_name -> blippy.conversation.ToolExecution
+	5,  // 12: blippy.conversation.ConversationService.CreateConversation:input_type -> blippy.conversation.CreateConversationRequest
+	6,  // 13: blippy.conversation.ConversationService.GetConversation:input_type -> blippy.conversation.GetConversationRequest
+	7,  // 14: blippy.conversation.ConversationService.ListConversations:input_type -> blippy.conversation.ListConversationsRequest
+	9,  // 15: blippy.conversation.ConversationService.DeleteConversation:input_type -> blippy.conversation.DeleteConversationRequest
+	10, // 16: blippy.conversation.ConversationService.GetMessages:input_type -> blippy.conversation.GetMessagesRequest
+	12, // 17: blippy.conversation.ConversationService.Chat:input_type -> blippy.conversation.ChatRequest
+	0,  // 18: blippy.conversation.ConversationService.CreateConversation:output_type -> blippy.conversation.Conversation
+	0,  // 19: blippy.conversation.ConversationService.GetConversation:output_type -> blippy.conversation.Conversation
+	8,  // 20: blippy.conversation.ConversationService.ListConversations:output_type -> blippy.conversation.ListConversationsResponse
+	18, // 21: blippy.conversation.ConversationService.DeleteConversation:output_type -> blippy.conversation.Empty
+	11, // 22: blippy.conversation.ConversationService.GetMessages:output_type -> blippy.conversation.GetMessagesResponse
+	13, // 23: blippy.conversation.ConversationService.Chat:output_type -> blippy.conversation.ChatEvent
+	18, // [18:24] is the sub-list for method output_type
+	12, // [12:18] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_conversation_conversation_proto_init() }
@@ -1126,7 +1253,11 @@ func file_conversation_conversation_proto_init() {
 	if File_conversation_conversation_proto != nil {
 		return
 	}
-	file_conversation_conversation_proto_msgTypes[11].OneofWrappers = []any{
+	file_conversation_conversation_proto_msgTypes[2].OneofWrappers = []any{
+		(*MessageItem_Text)(nil),
+		(*MessageItem_ToolExecution)(nil),
+	}
+	file_conversation_conversation_proto_msgTypes[13].OneofWrappers = []any{
 		(*ChatEvent_Delta)(nil),
 		(*ChatEvent_Done)(nil),
 		(*ChatEvent_Error)(nil),
@@ -1138,7 +1269,7 @@ func file_conversation_conversation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conversation_conversation_proto_rawDesc), len(file_conversation_conversation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

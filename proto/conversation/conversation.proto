@@ -19,15 +19,25 @@ message Message {
   string id = 1;
   string conversation_id = 2;
   string role = 3;  // "user", "assistant", "system"
-  string content = 4;
   google.protobuf.Timestamp created_at = 5;
-  repeated StoredToolExecution tool_executions = 6;
+  repeated MessageItem items = 7;
 }
 
-message StoredToolExecution {
-  string name = 1;    // tool name (e.g., "bash")
-  string input = 2;   // tool input/arguments as JSON
-  string result = 3;  // tool output
+message MessageItem {
+  oneof item {
+    TextItem text = 1;
+    ToolExecutionItem tool_execution = 2;
+  }
+}
+
+message TextItem {
+  string content = 1;
+}
+
+message ToolExecutionItem {
+  string name = 1;
+  string input = 2;
+  string result = 3;
 }
 
 message CreateConversationRequest {

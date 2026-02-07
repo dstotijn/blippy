@@ -15,24 +15,29 @@ import {
 	getConversation,
 	getMessages,
 } from "@/lib/rpc/conversation/conversation-ConversationService_connectquery";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/agents/$agentId/$conversationId")({
 	component: ConversationChat,
 });
 
-interface ToolExecutionData {
-	id: string;
+interface MessageItemText {
+	type: "text";
+	content: string;
+}
+
+interface MessageItemToolExecution {
+	type: "tool_execution";
 	name: string;
 	input?: string;
 	result?: string;
 }
 
+type MessageItem = MessageItemText | MessageItemToolExecution;
+
 interface Message {
 	id: string;
 	role: string;
-	content: string;
-	toolExecutions?: ToolExecutionData[];
+	items: MessageItem[];
 }
 
 function MessageBubble({
@@ -44,46 +49,69 @@ function MessageBubble({
 }) {
 	const isUser = message.role === "user";
 
-	return (
-		<div
-			className={cn(
-				"group flex flex-col gap-3",
-				isUser ? "items-end" : "items-start",
-			)}
-		>
-			{message.toolExecutions?.map((tool) => (
-				<ToolExecution
-					key={tool.id}
-					name={tool.name}
-					input={tool.input}
-					result={tool.result}
-				/>
-			))}
-			<div
-				className={cn(
-					"relative max-w-[80%]",
-					isUser
-						? "rounded-2xl bg-primary px-4 py-2.5 text-primary-foreground"
-						: "text-foreground",
-				)}
-			>
-				<div
-					className={cn(
-						"prose max-w-none",
-						isUser ? "[&_*]:text-primary-foreground" : "dark:prose-invert",
-					)}
-				>
-					<ReactMarkdown remarkPlugins={[remarkGfm]}>
-						{message.content}
-					</ReactMarkdown>
-				</div>
-				{isStreaming && <TypingIndicator />}
-				{!isStreaming && !isUser && message.content && (
-					<div className="absolute -right-8 top-0">
-						<MessageActions content={message.content} />
+	// For user messages, combine all text items into a single string
+	if (isUser) {
+		const textContent = message.items
+			.filter((item): item is MessageItemText => item.type === "text")
+			.map((item) => item.content)
+			.join("\n\n");
+
+		return (
+			<div className="group flex flex-col gap-3 items-end">
+				<div className="relative max-w-[80%] rounded-2xl bg-primary px-4 py-2.5 text-primary-foreground">
+					<div className="prose max-w-none [&_*]:text-primary-foreground">
+						<ReactMarkdown remarkPlugins={[remarkGfm]}>
+							{textContent}
+						</ReactMarkdown>
 					</div>
-				)}
+				</div>
 			</div>
+		);
+	}
+
+	// For assistant messages, render items in order
+	// Generate stable keys for items based on message id + position
+	const itemKeys = message.items.map(
+		(item, i) => `${message.id}-${item.type}-${i}`,
+	);
+
+	return (
+		<div className="group flex flex-col gap-3 items-start">
+			{message.items.map((item, index) => {
+				const key = itemKeys[index];
+				if (item.type === "tool_execution") {
+					return (
+						<ToolExecution
+							key={key}
+							name={item.name}
+							input={item.input}
+							result={item.result}
+						/>
+					);
+				}
+
+				// text item
+				const isLastItem = index === message.items.length - 1;
+				const isLastTextItem =
+					isLastItem ||
+					message.items.slice(index + 1).every((i) => i.type !== "text");
+				return (
+					<div key={key} className="relative max-w-[80%] text-foreground">
+						<div className="prose max-w-none dark:prose-invert">
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>
+								{item.content}
+							</ReactMarkdown>
+						</div>
+						{isStreaming && isLastItem && <TypingIndicator />}
+						{!isStreaming && isLastTextItem && item.content && (
+							<div className="absolute -right-8 top-0">
+								<MessageActions content={item.content} />
+							</div>
+						)}
+					</div>
+				);
+			})}
+			{isStreaming && message.items.length === 0 && <TypingIndicator />}
 		</div>
 	);
 }
@@ -95,10 +123,7 @@ function ConversationChat() {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
 	const [isStreaming, setIsStreaming] = useState(false);
-	const [streamingContent, setStreamingContent] = useState("");
-	const [pendingToolExecutions, setPendingToolExecutions] = useState<
-		ToolExecutionData[]
-	>([]);
+	const [streamingItems, setStreamingItems] = useState<MessageItem[]>([]);
 	const [title, setTitle] = useState<string | undefined>();
 	const lastMessageRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -125,13 +150,23 @@ function ConversationChat() {
 				messagesData.messages.map((m) => ({
 					id: m.id,
 					role: m.role,
-					content: m.content,
-					toolExecutions: m.toolExecutions?.map((te, i) => ({
-						id: `${m.id}-tool-${i}`,
-						name: te.name,
-						input: te.input,
-						result: te.result,
-					})),
+					items: m.items.map((protoItem): MessageItem => {
+						if (protoItem.item.case === "text") {
+							return {
+								type: "text",
+								content: protoItem.item.value.content,
+							};
+						}
+						if (protoItem.item.case === "toolExecution") {
+							return {
+								type: "tool_execution",
+								name: protoItem.item.value.name,
+								input: protoItem.item.value.input,
+								result: protoItem.item.value.result,
+							};
+						}
+						return { type: "text", content: "" };
+					}),
 				})),
 			);
 		}
@@ -152,7 +187,7 @@ function ConversationChat() {
 	// Reset state when switching conversations
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run on conversationId change
 	useEffect(() => {
-		setPendingToolExecutions([]);
+		setStreamingItems([]);
 		initialLoadDone.current = false;
 		prevMessagesLength.current = 0;
 	}, [conversationId]);
@@ -172,15 +207,15 @@ function ConversationChat() {
 		prevMessagesLength.current = messages.length;
 	}, [messages]);
 
-	// Scroll when tool executions update
+	// Scroll when streaming items update
 	useEffect(() => {
-		if (initialLoadDone.current && pendingToolExecutions.length > 0) {
+		if (initialLoadDone.current && streamingItems.length > 0) {
 			lastMessageRef.current?.scrollIntoView({
 				behavior: "smooth",
 				block: "start",
 			});
 		}
-	}, [pendingToolExecutions]);
+	}, [streamingItems]);
 
 	// Scroll when streaming starts
 	useEffect(() => {
@@ -209,33 +244,43 @@ function ConversationChat() {
 		}
 		setMessages((prev) => [
 			...prev,
-			{ id: pendingUserMessageId, role: "user", content: userMessage },
+			{
+				id: pendingUserMessageId,
+				role: "user",
+				items: [{ type: "text", content: userMessage }],
+			},
 		]);
 		setIsStreaming(true);
-		setStreamingContent("");
+		setStreamingItems([]);
 
 		try {
 			const client = createClient(ConversationService, transport);
 			const stream = client.chat({ conversationId, content: userMessage });
 
-			let fullContent = "";
-			const toolExecs: ToolExecutionData[] = [];
+			const items: MessageItem[] = [];
 
 			for await (const event of stream) {
 				if (event.event.case === "delta") {
-					fullContent += event.event.value.content;
-					setStreamingContent(fullContent);
+					// Append to last text item, or create a new one
+					const lastItem = items[items.length - 1];
+					if (lastItem && lastItem.type === "text") {
+						lastItem.content += event.event.value.content;
+					} else {
+						items.push({
+							type: "text",
+							content: event.event.value.content,
+						});
+					}
+					setStreamingItems([...items]);
 				} else if (event.event.case === "toolExecution") {
 					const { name, input, result } = event.event.value;
-					const toolExec = {
-						// Not secret; only used as a React key.
-						id: Math.random().toString(36).slice(2),
+					items.push({
+						type: "tool_execution",
 						name,
 						input,
 						result,
-					};
-					toolExecs.push(toolExec);
-					setPendingToolExecutions([...toolExecs]);
+					});
+					setStreamingItems([...items]);
 				} else if (event.event.case === "done") {
 					const {
 						userMessageId,
@@ -253,12 +298,10 @@ function ConversationChat() {
 							.concat({
 								id: assistantMessageId,
 								role: "assistant",
-								content: fullContent,
-								toolExecutions: toolExecs.length > 0 ? toolExecs : undefined,
+								items: [...items],
 							}),
 					);
-					setStreamingContent("");
-					setPendingToolExecutions([]);
+					setStreamingItems([]);
 				} else if (event.event.case === "error") {
 					console.error("Chat error:", event.event.value.message);
 				}
@@ -290,7 +333,7 @@ function ConversationChat() {
 				className="flex-1 overflow-y-auto pb-24 pt-4"
 			>
 				<div className="mx-auto max-w-3xl">
-					{messages.length === 0 && !streamingContent ? (
+					{messages.length === 0 && streamingItems.length === 0 ? (
 						<div className="flex h-full items-center justify-center">
 							<p className="text-muted-foreground">
 								Send a message to start the conversation
@@ -300,38 +343,20 @@ function ConversationChat() {
 						<div className="space-y-4">
 							{messages.map((msg, index) => {
 								const isLast = index === messages.length - 1;
-								const shouldRef =
-									isLast &&
-									!streamingContent &&
-									pendingToolExecutions.length === 0;
+								const shouldRef = isLast && streamingItems.length === 0;
 								return (
 									<div key={msg.id} ref={shouldRef ? lastMessageRef : null}>
 										<MessageBubble message={msg} />
 									</div>
 								);
 							})}
-							{pendingToolExecutions.length > 0 && (
-								<div
-									ref={!streamingContent ? lastMessageRef : null}
-									className="space-y-2"
-								>
-									{pendingToolExecutions.map((tool) => (
-										<ToolExecution
-											key={tool.id}
-											name={tool.name}
-											input={tool.input}
-											result={tool.result}
-										/>
-									))}
-								</div>
-							)}
-							{streamingContent && (
+							{streamingItems.length > 0 && (
 								<div ref={lastMessageRef}>
 									<MessageBubble
 										message={{
 											id: "streaming",
 											role: "assistant",
-											content: streamingContent,
+											items: streamingItems,
 										}}
 										isStreaming
 									/>

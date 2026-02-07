@@ -21,8 +21,7 @@ CREATE TABLE messages (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
     role TEXT NOT NULL,
-    content TEXT NOT NULL,
-    tool_executions TEXT NOT NULL DEFAULT '[]',
+    items TEXT NOT NULL DEFAULT '[]',
     created_at TEXT NOT NULL
 );
 

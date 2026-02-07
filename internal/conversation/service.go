@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -140,12 +141,12 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 	// Save user message
 	now := time.Now().UTC()
 	userMsgID := uuid.NewString()
+	userItems, _ := json.Marshal([]storedItem{{Type: "text", Text: req.Msg.Content}})
 	_, err = s.queries.CreateMessage(ctx, store.CreateMessageParams{
 		ID:             userMsgID,
 		ConversationID: conv.ID,
 		Role:           "user",
-		Content:        req.Msg.Content,
-		ToolExecutions: "[]",
+		Items:          string(userItems),
 		CreatedAt:      now.Format(time.RFC3339),
 	})
 	if err != nil {
@@ -171,55 +172,7 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 	// Build input array with conversation history
 	var inputs []openrouter.Input
 	for _, msg := range existingMsgs {
-		if msg.Role == "user" {
-			inputs = append(inputs, openrouter.Input{
-				Type: "message",
-				Role: "user",
-				Content: []openrouter.ContentPart{
-					{Type: "input_text", Text: msg.Content},
-				},
-			})
-		} else if msg.Role == "assistant" {
-			// Include tool executions before the assistant text message
-			var msgToolExecs []storedToolExec
-			if msg.ToolExecutions != "" && msg.ToolExecutions != "[]" {
-				_ = json.Unmarshal([]byte(msg.ToolExecutions), &msgToolExecs)
-			}
-			for i, te := range msgToolExecs {
-				callID := te.CallID
-				if callID == "" {
-					callID = fmt.Sprintf("call_%s_%d", msg.ID, i)
-				}
-				fcID := te.ID
-				if fcID == "" {
-					fcID = fmt.Sprintf("fc_%s_%d", msg.ID, i)
-				}
-				inputs = append(inputs, openrouter.Input{
-					Type:      "function_call",
-					ID:        fcID,
-					CallID:    callID,
-					Name:      tool.EncodeToolName(te.Name),
-					Arguments: te.Input,
-				})
-				inputs = append(inputs, openrouter.Input{
-					Type:   "function_call_output",
-					ID:     fmt.Sprintf("fc_out_%s_%d", msg.ID, i),
-					CallID: callID,
-					Output: te.Result,
-				})
-			}
-
-			inputs = append(inputs, openrouter.Input{
-				Type:   "message",
-				Role:   "assistant",
-				ID:     msg.ID,
-				Status: "completed",
-				Content: []openrouter.ContentPart{
-					{Type: "output_text", Text: msg.Content},
-				},
-				Annotations: []any{},
-			})
-		}
+		inputs = append(inputs, buildHistoryInputs(msg)...)
 	}
 	// Add the new user message
 	inputs = append(inputs, openrouter.Input{
@@ -247,13 +200,15 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 	return s.streamWithToolExecution(ctx, conv, orReq, userMsgID, req.Msg.Content, stream, nil)
 }
 
-// storedToolExec represents a tool execution for JSON storage
-type storedToolExec struct {
-	ID     string `json:"id,omitempty"`
-	CallID string `json:"call_id,omitempty"`
-	Name   string `json:"name"`
-	Input  string `json:"input"`
-	Result string `json:"result"`
+// storedItem represents an item in the message items JSON array.
+type storedItem struct {
+	Type   string `json:"type"`              // "text" or "tool_execution"
+	Text   string `json:"text,omitempty"`    // for type="text"
+	Name   string `json:"name,omitempty"`    // for type="tool_execution"
+	Input  string `json:"input,omitempty"`   // for type="tool_execution"
+	Result string `json:"result,omitempty"`  // for type="tool_execution"
+	ID     string `json:"id,omitempty"`      // function call ID
+	CallID string `json:"call_id,omitempty"` // for history reconstruction
 }
 
 func (s *Service) streamWithToolExecution(
@@ -263,24 +218,29 @@ func (s *Service) streamWithToolExecution(
 	userMsgID string,
 	userMsgContent string,
 	stream *connect.ServerStream[ChatEvent],
-	toolExecs []storedToolExec,
+	priorItems []storedItem,
 ) error {
 	events, errs := s.orClient.CreateResponseStream(ctx, orReq)
 
-	var fullContent string
+	var currentText string
 	var responseID string
 
 	for {
 		select {
 		case event, ok := <-events:
 			if !ok {
-				// Stream ended
-				return s.finishChat(ctx, conv, userMsgID, userMsgContent, fullContent, responseID, toolExecs, stream)
+				// Stream ended — finalize current text and store
+				var items []storedItem
+				items = append(items, priorItems...)
+				if currentText != "" {
+					items = append(items, storedItem{Type: "text", Text: currentText})
+				}
+				return s.finishChat(ctx, conv, userMsgID, userMsgContent, items, responseID, stream)
 			}
 
 			// Only stream text deltas, skip function call argument deltas
 			if event.Type == "response.output_text.delta" && event.Delta != "" {
-				fullContent += event.Delta
+				currentText += event.Delta
 				if err := stream.Send(&ChatEvent{
 					Event: &ChatEvent_Delta{
 						Delta: &ChatDelta{Content: event.Delta},
@@ -301,7 +261,14 @@ func (s *Service) streamWithToolExecution(
 				}
 
 				if len(toolInputs) > 0 {
-					// Send tool execution events to client and collect for storage
+					// Finalize current text as an item
+					var items []storedItem
+					items = append(items, priorItems...)
+					if currentText != "" {
+						items = append(items, storedItem{Type: "text", Text: currentText})
+					}
+
+					// Send tool execution events to client and add to items
 					for _, input := range toolInputs {
 						if input.Type != "function_call_output" {
 							continue
@@ -318,8 +285,8 @@ func (s *Service) streamWithToolExecution(
 							}
 						}
 
-						// Collect for storage
-						toolExecs = append(toolExecs, storedToolExec{
+						items = append(items, storedItem{
+							Type:   "tool_execution",
 							ID:     toolID,
 							CallID: input.CallID,
 							Name:   toolName,
@@ -342,11 +309,10 @@ func (s *Service) streamWithToolExecution(
 					}
 
 					// Continue conversation with tool results appended to history
-					// OpenRouter doesn't support previous_response_id, so we append to input
 					orReq.Input = append(orReq.Input, toolInputs...)
 
-					// Recursively continue streaming with accumulated tool executions
-					return s.streamWithToolExecution(ctx, conv, orReq, userMsgID, userMsgContent, stream, toolExecs)
+					// Recursively continue streaming with accumulated items
+					return s.streamWithToolExecution(ctx, conv, orReq, userMsgID, userMsgContent, stream, items)
 				}
 			}
 
@@ -372,32 +338,26 @@ func (s *Service) finishChat(
 	conv store.Conversation,
 	userMsgID string,
 	userMsgContent string,
-	content string,
+	items []storedItem,
 	responseID string,
-	toolExecs []storedToolExec,
 	stream *connect.ServerStream[ChatEvent],
 ) error {
-	if content == "" {
+	if len(items) == 0 {
 		return nil
 	}
 
-	// Serialize tool executions to JSON
-	toolExecsJSON := "[]"
-	if len(toolExecs) > 0 {
-		data, err := json.Marshal(toolExecs)
-		if err != nil {
-			return connect.NewError(connect.CodeInternal, err)
-		}
-		toolExecsJSON = string(data)
+	// Serialize items to JSON
+	itemsJSON, err := json.Marshal(items)
+	if err != nil {
+		return connect.NewError(connect.CodeInternal, err)
 	}
 
 	msgID := uuid.NewString()
-	_, err := s.queries.CreateMessage(ctx, store.CreateMessageParams{
+	_, err = s.queries.CreateMessage(ctx, store.CreateMessageParams{
 		ID:             msgID,
 		ConversationID: conv.ID,
 		Role:           "assistant",
-		Content:        content,
-		ToolExecutions: toolExecsJSON,
+		Items:          string(itemsJSON),
 		CreatedAt:      time.Now().UTC().Format(time.RFC3339),
 	})
 	if err != nil {
@@ -407,7 +367,9 @@ func (s *Service) finishChat(
 	// Generate title if this is the first turn
 	var title string
 	if conv.Title == "" {
-		generated, err := s.orClient.GenerateTitle(ctx, s.defaultModel, userMsgContent, content)
+		// Derive plain text for title generation
+		plainText := plainTextFromItems(items)
+		generated, err := s.orClient.GenerateTitle(ctx, s.defaultModel, userMsgContent, plainText)
 		if err != nil {
 			log.Printf("Failed to generate title: %v", err)
 		} else {
@@ -444,6 +406,87 @@ func (s *Service) finishChat(
 	})
 }
 
+// plainTextFromItems concatenates all text items into a single string.
+func plainTextFromItems(items []storedItem) string {
+	var parts []string
+	for _, item := range items {
+		if item.Type == "text" && item.Text != "" {
+			parts = append(parts, item.Text)
+		}
+	}
+	return strings.Join(parts, "\n\n")
+}
+
+// buildHistoryInputs converts a stored message into OpenRouter input items.
+func buildHistoryInputs(msg store.Message) []openrouter.Input {
+	var items []storedItem
+	if msg.Items != "" && msg.Items != "[]" {
+		_ = json.Unmarshal([]byte(msg.Items), &items)
+	}
+
+	if msg.Role == "user" {
+		text := plainTextFromItems(items)
+		return []openrouter.Input{{
+			Type: "message",
+			Role: "user",
+			Content: []openrouter.ContentPart{
+				{Type: "input_text", Text: text},
+			},
+		}}
+	}
+
+	if msg.Role == "assistant" {
+		var inputs []openrouter.Input
+		// Emit items in order: text segments become assistant messages,
+		// tool executions become function_call + function_call_output pairs.
+		for i, item := range items {
+			switch item.Type {
+			case "tool_execution":
+				callID := item.CallID
+				if callID == "" {
+					callID = fmt.Sprintf("call_%s_%d", msg.ID, i)
+				}
+				fcID := item.ID
+				if fcID == "" {
+					fcID = fmt.Sprintf("fc_%s_%d", msg.ID, i)
+				}
+				inputs = append(inputs, openrouter.Input{
+					Type:      "function_call",
+					ID:        fcID,
+					CallID:    callID,
+					Name:      tool.EncodeToolName(item.Name),
+					Arguments: item.Input,
+				})
+				inputs = append(inputs, openrouter.Input{
+					Type:   "function_call_output",
+					ID:     fmt.Sprintf("fc_out_%s_%d", msg.ID, i),
+					CallID: callID,
+					Output: item.Result,
+				})
+			}
+		}
+
+		// Emit a single assistant message with all text content combined
+		text := plainTextFromItems(items)
+		if text != "" {
+			inputs = append(inputs, openrouter.Input{
+				Type:   "message",
+				Role:   "assistant",
+				ID:     msg.ID,
+				Status: "completed",
+				Content: []openrouter.ContentPart{
+					{Type: "output_text", Text: text},
+				},
+				Annotations: []any{},
+			})
+		}
+
+		return inputs
+	}
+
+	return nil
+}
+
 func toProtoConversation(c store.Conversation) *Conversation {
 	createdAt, _ := time.Parse(time.RFC3339, c.CreatedAt)
 	updatedAt, _ := time.Parse(time.RFC3339, c.UpdatedAt)
@@ -461,18 +504,32 @@ func toProtoConversation(c store.Conversation) *Conversation {
 func toProtoMessage(m store.Message) *Message {
 	createdAt, _ := time.Parse(time.RFC3339, m.CreatedAt)
 
-	// Parse tool executions from JSON
-	var toolExecs []storedToolExec
-	if m.ToolExecutions != "" && m.ToolExecutions != "[]" {
-		_ = json.Unmarshal([]byte(m.ToolExecutions), &toolExecs)
+	var items []storedItem
+	if m.Items != "" && m.Items != "[]" {
+		_ = json.Unmarshal([]byte(m.Items), &items)
 	}
 
-	protoToolExecs := make([]*StoredToolExecution, len(toolExecs))
-	for i, te := range toolExecs {
-		protoToolExecs[i] = &StoredToolExecution{
-			Name:   te.Name,
-			Input:  te.Input,
-			Result: te.Result,
+	protoItems := make([]*MessageItem, len(items))
+	for i, item := range items {
+		switch item.Type {
+		case "text":
+			protoItems[i] = &MessageItem{
+				Item: &MessageItem_Text{
+					Text: &TextItem{Content: item.Text},
+				},
+			}
+		case "tool_execution":
+			protoItems[i] = &MessageItem{
+				Item: &MessageItem_ToolExecution{
+					ToolExecution: &ToolExecutionItem{
+						Name:   item.Name,
+						Input:  item.Input,
+						Result: item.Result,
+					},
+				},
+			}
+		default:
+			protoItems[i] = &MessageItem{}
 		}
 	}
 
@@ -480,8 +537,7 @@ func toProtoMessage(m store.Message) *Message {
 		Id:             m.ID,
 		ConversationId: m.ConversationID,
 		Role:           m.Role,
-		Content:        m.Content,
 		CreatedAt:      timestamppb.New(createdAt),
-		ToolExecutions: protoToolExecs,
+		Items:          protoItems,
 	}
 }

@@ -12,7 +12,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file conversation/conversation.proto.
  */
 export const file_conversation_conversation: GenFile = /*@__PURE__*/
-  fileDesc("Ch9jb252ZXJzYXRpb24vY29udmVyc2F0aW9uLnByb3RvEhNibGlwcHkuY29udmVyc2F0aW9uIrkBCgxDb252ZXJzYXRpb24SCgoCaWQYASABKAkSEAoIYWdlbnRfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSHAoUcHJldmlvdXNfcmVzcG9uc2VfaWQYBCABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiwAEKB01lc3NhZ2USCgoCaWQYASABKAkSFwoPY29udmVyc2F0aW9uX2lkGAIgASgJEgwKBHJvbGUYAyABKAkSDwoHY29udGVudBgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBJBCg90b29sX2V4ZWN1dGlvbnMYBiADKAsyKC5ibGlwcHkuY29udmVyc2F0aW9uLlN0b3JlZFRvb2xFeGVjdXRpb24iQgoTU3RvcmVkVG9vbEV4ZWN1dGlvbhIMCgRuYW1lGAEgASgJEg0KBWlucHV0GAIgASgJEg4KBnJlc3VsdBgDIAEoCSItChlDcmVhdGVDb252ZXJzYXRpb25SZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIiQKFkdldENvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLAoYTGlzdENvbnZlcnNhdGlvbnNSZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIlUKGUxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USOAoNY29udmVyc2F0aW9ucxgBIAMoCzIhLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uIicKGURlbGV0ZUNvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLQoSR2V0TWVzc2FnZXNSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCSJFChNHZXRNZXNzYWdlc1Jlc3BvbnNlEi4KCG1lc3NhZ2VzGAEgAygLMhwuYmxpcHB5LmNvbnZlcnNhdGlvbi5NZXNzYWdlIjcKC0NoYXRSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJIuMBCglDaGF0RXZlbnQSLwoFZGVsdGEYASABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREZWx0YUgAEi0KBGRvbmUYAiABKAsyHS5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREb25lSAASLwoFZXJyb3IYAyABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRFcnJvckgAEjwKDnRvb2xfZXhlY3V0aW9uGAQgASgLMiIuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSABCBwoFZXZlbnQiHAoJQ2hhdERlbHRhEg8KB2NvbnRlbnQYASABKAkiZQoIQ2hhdERvbmUSFwoPdXNlcl9tZXNzYWdlX2lkGAEgASgJEhwKFGFzc2lzdGFudF9tZXNzYWdlX2lkGAIgASgJEhMKC3Jlc3BvbnNlX2lkGAMgASgJEg0KBXRpdGxlGAQgASgJIhwKCUNoYXRFcnJvchIPCgdtZXNzYWdlGAEgASgJIkwKDVRvb2xFeGVjdXRpb24SDAoEbmFtZRgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDgoGcmVzdWx0GAMgASgJEg0KBWlucHV0GAQgASgJIgcKBUVtcHR5MuUEChNDb252ZXJzYXRpb25TZXJ2aWNlEmcKEkNyZWF0ZUNvbnZlcnNhdGlvbhIuLmJsaXBweS5jb252ZXJzYXRpb24uQ3JlYXRlQ29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEmEKD0dldENvbnZlcnNhdGlvbhIrLmJsaXBweS5jb252ZXJzYXRpb24uR2V0Q29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEnIKEUxpc3RDb252ZXJzYXRpb25zEi0uYmxpcHB5LmNvbnZlcnNhdGlvbi5MaXN0Q29udmVyc2F0aW9uc1JlcXVlc3QaLi5ibGlwcHkuY29udmVyc2F0aW9uLkxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USYAoSRGVsZXRlQ29udmVyc2F0aW9uEi4uYmxpcHB5LmNvbnZlcnNhdGlvbi5EZWxldGVDb252ZXJzYXRpb25SZXF1ZXN0GhouYmxpcHB5LmNvbnZlcnNhdGlvbi5FbXB0eRJgCgtHZXRNZXNzYWdlcxInLmJsaXBweS5jb252ZXJzYXRpb24uR2V0TWVzc2FnZXNSZXF1ZXN0GiguYmxpcHB5LmNvbnZlcnNhdGlvbi5HZXRNZXNzYWdlc1Jlc3BvbnNlEkoKBENoYXQSIC5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRSZXF1ZXN0Gh4uYmxpcHB5LmNvbnZlcnNhdGlvbi5DaGF0RXZlbnQwAUIyWjBnaXRodWIuY29tL2RzdG90aWpuL2JsaXBweS9pbnRlcm5hbC9jb252ZXJzYXRpb25iBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("Ch9jb252ZXJzYXRpb24vY29udmVyc2F0aW9uLnByb3RvEhNibGlwcHkuY29udmVyc2F0aW9uIrkBCgxDb252ZXJzYXRpb24SCgoCaWQYASABKAkSEAoIYWdlbnRfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSHAoUcHJldmlvdXNfcmVzcG9uc2VfaWQYBCABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAinQEKB01lc3NhZ2USCgoCaWQYASABKAkSFwoPY29udmVyc2F0aW9uX2lkGAIgASgJEgwKBHJvbGUYAyABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoFaXRlbXMYByADKAsyIC5ibGlwcHkuY29udmVyc2F0aW9uLk1lc3NhZ2VJdGVtIoYBCgtNZXNzYWdlSXRlbRItCgR0ZXh0GAEgASgLMh0uYmxpcHB5LmNvbnZlcnNhdGlvbi5UZXh0SXRlbUgAEkAKDnRvb2xfZXhlY3V0aW9uGAIgASgLMiYuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSXRlbUgAQgYKBGl0ZW0iGwoIVGV4dEl0ZW0SDwoHY29udGVudBgBIAEoCSJAChFUb29sRXhlY3V0aW9uSXRlbRIMCgRuYW1lGAEgASgJEg0KBWlucHV0GAIgASgJEg4KBnJlc3VsdBgDIAEoCSItChlDcmVhdGVDb252ZXJzYXRpb25SZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIiQKFkdldENvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLAoYTGlzdENvbnZlcnNhdGlvbnNSZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIlUKGUxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USOAoNY29udmVyc2F0aW9ucxgBIAMoCzIhLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uIicKGURlbGV0ZUNvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLQoSR2V0TWVzc2FnZXNSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCSJFChNHZXRNZXNzYWdlc1Jlc3BvbnNlEi4KCG1lc3NhZ2VzGAEgAygLMhwuYmxpcHB5LmNvbnZlcnNhdGlvbi5NZXNzYWdlIjcKC0NoYXRSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJIuMBCglDaGF0RXZlbnQSLwoFZGVsdGEYASABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREZWx0YUgAEi0KBGRvbmUYAiABKAsyHS5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREb25lSAASLwoFZXJyb3IYAyABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRFcnJvckgAEjwKDnRvb2xfZXhlY3V0aW9uGAQgASgLMiIuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSABCBwoFZXZlbnQiHAoJQ2hhdERlbHRhEg8KB2NvbnRlbnQYASABKAkiZQoIQ2hhdERvbmUSFwoPdXNlcl9tZXNzYWdlX2lkGAEgASgJEhwKFGFzc2lzdGFudF9tZXNzYWdlX2lkGAIgASgJEhMKC3Jlc3BvbnNlX2lkGAMgASgJEg0KBXRpdGxlGAQgASgJIhwKCUNoYXRFcnJvchIPCgdtZXNzYWdlGAEgASgJIkwKDVRvb2xFeGVjdXRpb24SDAoEbmFtZRgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDgoGcmVzdWx0GAMgASgJEg0KBWlucHV0GAQgASgJIgcKBUVtcHR5MuUEChNDb252ZXJzYXRpb25TZXJ2aWNlEmcKEkNyZWF0ZUNvbnZlcnNhdGlvbhIuLmJsaXBweS5jb252ZXJzYXRpb24uQ3JlYXRlQ29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEmEKD0dldENvbnZlcnNhdGlvbhIrLmJsaXBweS5jb252ZXJzYXRpb24uR2V0Q29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEnIKEUxpc3RDb252ZXJzYXRpb25zEi0uYmxpcHB5LmNvbnZlcnNhdGlvbi5MaXN0Q29udmVyc2F0aW9uc1JlcXVlc3QaLi5ibGlwcHkuY29udmVyc2F0aW9uLkxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USYAoSRGVsZXRlQ29udmVyc2F0aW9uEi4uYmxpcHB5LmNvbnZlcnNhdGlvbi5EZWxldGVDb252ZXJzYXRpb25SZXF1ZXN0GhouYmxpcHB5LmNvbnZlcnNhdGlvbi5FbXB0eRJgCgtHZXRNZXNzYWdlcxInLmJsaXBweS5jb252ZXJzYXRpb24uR2V0TWVzc2FnZXNSZXF1ZXN0GiguYmxpcHB5LmNvbnZlcnNhdGlvbi5HZXRNZXNzYWdlc1Jlc3BvbnNlEkoKBENoYXQSIC5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRSZXF1ZXN0Gh4uYmxpcHB5LmNvbnZlcnNhdGlvbi5DaGF0RXZlbnQwAUIyWjBnaXRodWIuY29tL2RzdG90aWpuL2JsaXBweS9pbnRlcm5hbC9jb252ZXJzYXRpb25iBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message blippy.conversation.Conversation
@@ -80,19 +80,14 @@ export type Message = Message$1<"blippy.conversation.Message"> & {
   role: string;
 
   /**
-   * @generated from field: string content = 4;
-   */
-  content: string;
-
-  /**
    * @generated from field: google.protobuf.Timestamp created_at = 5;
    */
   createdAt?: Timestamp;
 
   /**
-   * @generated from field: repeated blippy.conversation.StoredToolExecution tool_executions = 6;
+   * @generated from field: repeated blippy.conversation.MessageItem items = 7;
    */
-  toolExecutions: StoredToolExecution[];
+  items: MessageItem[];
 };
 
 /**
@@ -103,37 +98,77 @@ export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
   messageDesc(file_conversation_conversation, 1);
 
 /**
- * @generated from message blippy.conversation.StoredToolExecution
+ * @generated from message blippy.conversation.MessageItem
  */
-export type StoredToolExecution = Message$1<"blippy.conversation.StoredToolExecution"> & {
+export type MessageItem = Message$1<"blippy.conversation.MessageItem"> & {
   /**
-   * tool name (e.g., "bash")
-   *
+   * @generated from oneof blippy.conversation.MessageItem.item
+   */
+  item: {
+    /**
+     * @generated from field: blippy.conversation.TextItem text = 1;
+     */
+    value: TextItem;
+    case: "text";
+  } | {
+    /**
+     * @generated from field: blippy.conversation.ToolExecutionItem tool_execution = 2;
+     */
+    value: ToolExecutionItem;
+    case: "toolExecution";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message blippy.conversation.MessageItem.
+ * Use `create(MessageItemSchema)` to create a new message.
+ */
+export const MessageItemSchema: GenMessage<MessageItem> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 2);
+
+/**
+ * @generated from message blippy.conversation.TextItem
+ */
+export type TextItem = Message$1<"blippy.conversation.TextItem"> & {
+  /**
+   * @generated from field: string content = 1;
+   */
+  content: string;
+};
+
+/**
+ * Describes the message blippy.conversation.TextItem.
+ * Use `create(TextItemSchema)` to create a new message.
+ */
+export const TextItemSchema: GenMessage<TextItem> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 3);
+
+/**
+ * @generated from message blippy.conversation.ToolExecutionItem
+ */
+export type ToolExecutionItem = Message$1<"blippy.conversation.ToolExecutionItem"> & {
+  /**
    * @generated from field: string name = 1;
    */
   name: string;
 
   /**
-   * tool input/arguments as JSON
-   *
    * @generated from field: string input = 2;
    */
   input: string;
 
   /**
-   * tool output
-   *
    * @generated from field: string result = 3;
    */
   result: string;
 };
 
 /**
- * Describes the message blippy.conversation.StoredToolExecution.
- * Use `create(StoredToolExecutionSchema)` to create a new message.
+ * Describes the message blippy.conversation.ToolExecutionItem.
+ * Use `create(ToolExecutionItemSchema)` to create a new message.
  */
-export const StoredToolExecutionSchema: GenMessage<StoredToolExecution> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 2);
+export const ToolExecutionItemSchema: GenMessage<ToolExecutionItem> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 4);
 
 /**
  * @generated from message blippy.conversation.CreateConversationRequest
@@ -150,7 +185,7 @@ export type CreateConversationRequest = Message$1<"blippy.conversation.CreateCon
  * Use `create(CreateConversationRequestSchema)` to create a new message.
  */
 export const CreateConversationRequestSchema: GenMessage<CreateConversationRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 3);
+  messageDesc(file_conversation_conversation, 5);
 
 /**
  * @generated from message blippy.conversation.GetConversationRequest
@@ -167,7 +202,7 @@ export type GetConversationRequest = Message$1<"blippy.conversation.GetConversat
  * Use `create(GetConversationRequestSchema)` to create a new message.
  */
 export const GetConversationRequestSchema: GenMessage<GetConversationRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 4);
+  messageDesc(file_conversation_conversation, 6);
 
 /**
  * @generated from message blippy.conversation.ListConversationsRequest
@@ -186,7 +221,7 @@ export type ListConversationsRequest = Message$1<"blippy.conversation.ListConver
  * Use `create(ListConversationsRequestSchema)` to create a new message.
  */
 export const ListConversationsRequestSchema: GenMessage<ListConversationsRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 5);
+  messageDesc(file_conversation_conversation, 7);
 
 /**
  * @generated from message blippy.conversation.ListConversationsResponse
@@ -203,7 +238,7 @@ export type ListConversationsResponse = Message$1<"blippy.conversation.ListConve
  * Use `create(ListConversationsResponseSchema)` to create a new message.
  */
 export const ListConversationsResponseSchema: GenMessage<ListConversationsResponse> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 6);
+  messageDesc(file_conversation_conversation, 8);
 
 /**
  * @generated from message blippy.conversation.DeleteConversationRequest
@@ -220,7 +255,7 @@ export type DeleteConversationRequest = Message$1<"blippy.conversation.DeleteCon
  * Use `create(DeleteConversationRequestSchema)` to create a new message.
  */
 export const DeleteConversationRequestSchema: GenMessage<DeleteConversationRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 7);
+  messageDesc(file_conversation_conversation, 9);
 
 /**
  * @generated from message blippy.conversation.GetMessagesRequest
@@ -237,7 +272,7 @@ export type GetMessagesRequest = Message$1<"blippy.conversation.GetMessagesReque
  * Use `create(GetMessagesRequestSchema)` to create a new message.
  */
 export const GetMessagesRequestSchema: GenMessage<GetMessagesRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 8);
+  messageDesc(file_conversation_conversation, 10);
 
 /**
  * @generated from message blippy.conversation.GetMessagesResponse
@@ -254,7 +289,7 @@ export type GetMessagesResponse = Message$1<"blippy.conversation.GetMessagesResp
  * Use `create(GetMessagesResponseSchema)` to create a new message.
  */
 export const GetMessagesResponseSchema: GenMessage<GetMessagesResponse> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 9);
+  messageDesc(file_conversation_conversation, 11);
 
 /**
  * @generated from message blippy.conversation.ChatRequest
@@ -276,7 +311,7 @@ export type ChatRequest = Message$1<"blippy.conversation.ChatRequest"> & {
  * Use `create(ChatRequestSchema)` to create a new message.
  */
 export const ChatRequestSchema: GenMessage<ChatRequest> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 10);
+  messageDesc(file_conversation_conversation, 12);
 
 /**
  * Streaming response events
@@ -319,7 +354,7 @@ export type ChatEvent = Message$1<"blippy.conversation.ChatEvent"> & {
  * Use `create(ChatEventSchema)` to create a new message.
  */
 export const ChatEventSchema: GenMessage<ChatEvent> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 11);
+  messageDesc(file_conversation_conversation, 13);
 
 /**
  * @generated from message blippy.conversation.ChatDelta
@@ -338,7 +373,7 @@ export type ChatDelta = Message$1<"blippy.conversation.ChatDelta"> & {
  * Use `create(ChatDeltaSchema)` to create a new message.
  */
 export const ChatDeltaSchema: GenMessage<ChatDelta> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 12);
+  messageDesc(file_conversation_conversation, 14);
 
 /**
  * @generated from message blippy.conversation.ChatDone
@@ -374,7 +409,7 @@ export type ChatDone = Message$1<"blippy.conversation.ChatDone"> & {
  * Use `create(ChatDoneSchema)` to create a new message.
  */
 export const ChatDoneSchema: GenMessage<ChatDone> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 13);
+  messageDesc(file_conversation_conversation, 15);
 
 /**
  * @generated from message blippy.conversation.ChatError
@@ -391,7 +426,7 @@ export type ChatError = Message$1<"blippy.conversation.ChatError"> & {
  * Use `create(ChatErrorSchema)` to create a new message.
  */
 export const ChatErrorSchema: GenMessage<ChatError> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 14);
+  messageDesc(file_conversation_conversation, 16);
 
 /**
  * @generated from message blippy.conversation.ToolExecution
@@ -431,7 +466,7 @@ export type ToolExecution = Message$1<"blippy.conversation.ToolExecution"> & {
  * Use `create(ToolExecutionSchema)` to create a new message.
  */
 export const ToolExecutionSchema: GenMessage<ToolExecution> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 15);
+  messageDesc(file_conversation_conversation, 17);
 
 /**
  * @generated from message blippy.conversation.Empty
@@ -444,7 +479,7 @@ export type Empty = Message$1<"blippy.conversation.Empty"> & {
  * Use `create(EmptySchema)` to create a new message.
  */
 export const EmptySchema: GenMessage<Empty> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 16);
+  messageDesc(file_conversation_conversation, 18);
 
 /**
  * @generated from service blippy.conversation.ConversationService

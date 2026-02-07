@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dstotijn/blippy/internal/openrouter"
@@ -59,13 +60,15 @@ func New(queries *store.Queries, orClient *openrouter.Client, defaultModel strin
 	}
 }
 
-// storedToolExec represents a tool execution for JSON storage
-type storedToolExec struct {
-	ID     string `json:"id,omitempty"`
-	CallID string `json:"call_id,omitempty"`
-	Name   string `json:"name"`
-	Input  string `json:"input"`
-	Result string `json:"result"`
+// storedItem represents an item in the message items JSON array.
+type storedItem struct {
+	Type   string `json:"type"`              // "text" or "tool_execution"
+	Text   string `json:"text,omitempty"`    // for type="text"
+	Name   string `json:"name,omitempty"`    // for type="tool_execution"
+	Input  string `json:"input,omitempty"`   // for type="tool_execution"
+	Result string `json:"result,omitempty"`  // for type="tool_execution"
+	ID     string `json:"id,omitempty"`      // function call ID
+	CallID string `json:"call_id,omitempty"` // for history reconstruction
 }
 
 // Run executes a conversation with an agent and returns the final response.
@@ -107,12 +110,12 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 
 	// Save user message
 	userMsgID := uuid.NewString()
+	userItems, _ := json.Marshal([]storedItem{{Type: "text", Text: opts.Prompt}})
 	_, err = r.queries.CreateMessage(ctx, store.CreateMessageParams{
 		ID:             userMsgID,
 		ConversationID: conv.ID,
 		Role:           "user",
-		Content:        opts.Prompt,
-		ToolExecutions: "[]",
+		Items:          string(userItems),
 		CreatedAt:      now.Format(time.RFC3339),
 	})
 	if err != nil {
@@ -175,32 +178,32 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 }
 
 // runLoop executes the agentic loop, processing tool calls until complete.
-func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *openrouter.ResponseRequest, toolExecs []storedToolExec) (string, error) {
+func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *openrouter.ResponseRequest, priorItems []storedItem) (string, error) {
 	events, errs := r.orClient.CreateResponseStream(ctx, orReq)
 
-	var fullContent string
+	var currentText string
 	var responseID string
 
 	for {
 		select {
 		case event, ok := <-events:
 			if !ok {
-				// Stream ended, save assistant message
-				if fullContent != "" {
-					// Serialize tool executions to JSON
-					toolExecsJSON := "[]"
-					if len(toolExecs) > 0 {
-						data, _ := json.Marshal(toolExecs)
-						toolExecsJSON = string(data)
-					}
+				// Stream ended — finalize current text and store
+				var items []storedItem
+				items = append(items, priorItems...)
+				if currentText != "" {
+					items = append(items, storedItem{Type: "text", Text: currentText})
+				}
+
+				if len(items) > 0 {
+					itemsJSON, _ := json.Marshal(items)
 
 					msgID := uuid.NewString()
 					_, err := r.queries.CreateMessage(ctx, store.CreateMessageParams{
 						ID:             msgID,
 						ConversationID: conv.ID,
 						Role:           "assistant",
-						Content:        fullContent,
-						ToolExecutions: toolExecsJSON,
+						Items:          string(itemsJSON),
 						CreatedAt:      time.Now().UTC().Format(time.RFC3339),
 					})
 					if err != nil {
@@ -218,8 +221,9 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 								break
 							}
 						}
+						plainText := plainTextFromItems(items)
 						if userContent != "" {
-							generated, err := r.orClient.GenerateTitle(ctx, r.defaultModel, userContent, fullContent)
+							generated, err := r.orClient.GenerateTitle(ctx, r.defaultModel, userContent, plainText)
 							if err == nil {
 								title = generated
 							}
@@ -240,12 +244,13 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 						}
 					}
 				}
-				return fullContent, nil
+
+				return plainTextFromItems(append(priorItems, storedItem{Type: "text", Text: currentText})), nil
 			}
 
 			// Collect text deltas
 			if event.Type == "response.output_text.delta" && event.Delta != "" {
-				fullContent += event.Delta
+				currentText += event.Delta
 			}
 
 			// Handle response completion (may contain function calls)
@@ -259,14 +264,20 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 				}
 
 				if len(toolInputs) > 0 {
-					// Extract tool execution details from toolInputs
-					// toolInputs contains pairs: function_call echo, then function_call_output
+					// Finalize current text as an item
+					var items []storedItem
+					items = append(items, priorItems...)
+					if currentText != "" {
+						items = append(items, storedItem{Type: "text", Text: currentText})
+					}
+
+					// Extract tool execution details
 					for _, input := range toolInputs {
 						if input.Type == "function_call_output" {
-							// Find the corresponding function_call to get the name, args, and ID
 							for _, fc := range toolInputs {
 								if fc.Type == "function_call" && fc.CallID == input.CallID {
-									toolExecs = append(toolExecs, storedToolExec{
+									items = append(items, storedItem{
+										Type:   "tool_execution",
 										ID:     fc.ID,
 										CallID: input.CallID,
 										Name:   tool.DecodeToolName(fc.Name),
@@ -282,8 +293,7 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 					// Continue conversation with tool results appended to history
 					orReq.Input = append(orReq.Input, toolInputs...)
 
-					// Recursively continue the loop with accumulated tool executions
-					return r.runLoop(ctx, conv, orReq, toolExecs)
+					return r.runLoop(ctx, conv, orReq, items)
 				}
 			}
 
@@ -296,4 +306,15 @@ func (r *Runner) runLoop(ctx context.Context, conv store.Conversation, orReq *op
 			return "", ctx.Err()
 		}
 	}
+}
+
+// plainTextFromItems concatenates all text items into a single string.
+func plainTextFromItems(items []storedItem) string {
+	var parts []string
+	for _, item := range items {
+		if item.Type == "text" && item.Text != "" {
+			parts = append(parts, item.Text)
+		}
+	}
+	return strings.Join(parts, "\n\n")
 }

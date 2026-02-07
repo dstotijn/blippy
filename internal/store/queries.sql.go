@@ -13,7 +13,7 @@ import (
 const createAgent = `-- name: CreateAgent :one
 INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, name, description, system_prompt, enabled_tools, created_at, updated_at, enabled_notification_channels, model
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at
 `
 
 type CreateAgentParams struct {
@@ -47,10 +47,10 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 		&i.Description,
 		&i.SystemPrompt,
 		&i.EnabledTools,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.EnabledNotificationChannels,
 		&i.Model,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -92,17 +92,16 @@ func (q *Queries) CreateConversation(ctx context.Context, arg CreateConversation
 }
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages (id, conversation_id, role, content, tool_executions, created_at)
-VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, conversation_id, role, content, created_at, tool_executions
+INSERT INTO messages (id, conversation_id, role, items, created_at)
+VALUES (?, ?, ?, ?, ?)
+RETURNING id, conversation_id, role, items, created_at
 `
 
 type CreateMessageParams struct {
 	ID             string
 	ConversationID string
 	Role           string
-	Content        string
-	ToolExecutions string
+	Items          string
 	CreatedAt      string
 }
 
@@ -111,8 +110,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		arg.ID,
 		arg.ConversationID,
 		arg.Role,
-		arg.Content,
-		arg.ToolExecutions,
+		arg.Items,
 		arg.CreatedAt,
 	)
 	var i Message
@@ -120,9 +118,8 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		&i.ID,
 		&i.ConversationID,
 		&i.Role,
-		&i.Content,
+		&i.Items,
 		&i.CreatedAt,
-		&i.ToolExecutions,
 	)
 	return i, err
 }
@@ -131,7 +128,7 @@ const createNotificationChannel = `-- name: CreateNotificationChannel :one
 
 INSERT INTO notification_channels (id, name, type, config, description, json_schema, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, name, type, config, created_at, updated_at, description, json_schema
+RETURNING id, name, type, config, description, json_schema, created_at, updated_at
 `
 
 type CreateNotificationChannelParams struct {
@@ -163,10 +160,10 @@ func (q *Queries) CreateNotificationChannel(ctx context.Context, arg CreateNotif
 		&i.Name,
 		&i.Type,
 		&i.Config,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Description,
 		&i.JsonSchema,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -175,7 +172,7 @@ const createTrigger = `-- name: CreateTrigger :one
 
 INSERT INTO triggers (id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title
+RETURNING id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at
 `
 
 type CreateTriggerParams struct {
@@ -216,10 +213,10 @@ func (q *Queries) CreateTrigger(ctx context.Context, arg CreateTriggerParams) (T
 		&i.CronExpr,
 		&i.Enabled,
 		&i.NextRunAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Model,
 		&i.ConversationTitle,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -302,7 +299,7 @@ func (q *Queries) DeleteTrigger(ctx context.Context, id string) error {
 }
 
 const getAgent = `-- name: GetAgent :one
-SELECT id, name, description, system_prompt, enabled_tools, created_at, updated_at, enabled_notification_channels, model FROM agents WHERE id = ?
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at FROM agents WHERE id = ?
 `
 
 func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
@@ -314,10 +311,10 @@ func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
 		&i.Description,
 		&i.SystemPrompt,
 		&i.EnabledTools,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.EnabledNotificationChannels,
 		&i.Model,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -341,7 +338,7 @@ func (q *Queries) GetConversation(ctx context.Context, id string) (Conversation,
 }
 
 const getDueTriggers = `-- name: GetDueTriggers :many
-SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title FROM triggers WHERE enabled = 1 AND next_run_at <= ? ORDER BY next_run_at ASC
+SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at FROM triggers WHERE enabled = 1 AND next_run_at <= ? ORDER BY next_run_at ASC
 `
 
 func (q *Queries) GetDueTriggers(ctx context.Context, nextRunAt sql.NullString) ([]Trigger, error) {
@@ -361,10 +358,10 @@ func (q *Queries) GetDueTriggers(ctx context.Context, nextRunAt sql.NullString) 
 			&i.CronExpr,
 			&i.Enabled,
 			&i.NextRunAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Model,
 			&i.ConversationTitle,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -380,7 +377,7 @@ func (q *Queries) GetDueTriggers(ctx context.Context, nextRunAt sql.NullString) 
 }
 
 const getMessagesByConversation = `-- name: GetMessagesByConversation :many
-SELECT id, conversation_id, role, content, created_at, tool_executions FROM messages WHERE conversation_id = ? ORDER BY created_at ASC
+SELECT id, conversation_id, role, items, created_at FROM messages WHERE conversation_id = ? ORDER BY created_at ASC
 `
 
 func (q *Queries) GetMessagesByConversation(ctx context.Context, conversationID string) ([]Message, error) {
@@ -396,9 +393,8 @@ func (q *Queries) GetMessagesByConversation(ctx context.Context, conversationID 
 			&i.ID,
 			&i.ConversationID,
 			&i.Role,
-			&i.Content,
+			&i.Items,
 			&i.CreatedAt,
-			&i.ToolExecutions,
 		); err != nil {
 			return nil, err
 		}
@@ -414,7 +410,7 @@ func (q *Queries) GetMessagesByConversation(ctx context.Context, conversationID 
 }
 
 const getNotificationChannel = `-- name: GetNotificationChannel :one
-SELECT id, name, type, config, created_at, updated_at, description, json_schema FROM notification_channels WHERE id = ?
+SELECT id, name, type, config, description, json_schema, created_at, updated_at FROM notification_channels WHERE id = ?
 `
 
 func (q *Queries) GetNotificationChannel(ctx context.Context, id string) (NotificationChannel, error) {
@@ -425,16 +421,16 @@ func (q *Queries) GetNotificationChannel(ctx context.Context, id string) (Notifi
 		&i.Name,
 		&i.Type,
 		&i.Config,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Description,
 		&i.JsonSchema,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getNotificationChannelByName = `-- name: GetNotificationChannelByName :one
-SELECT id, name, type, config, created_at, updated_at, description, json_schema FROM notification_channels WHERE name = ?
+SELECT id, name, type, config, description, json_schema, created_at, updated_at FROM notification_channels WHERE name = ?
 `
 
 func (q *Queries) GetNotificationChannelByName(ctx context.Context, name string) (NotificationChannel, error) {
@@ -445,16 +441,16 @@ func (q *Queries) GetNotificationChannelByName(ctx context.Context, name string)
 		&i.Name,
 		&i.Type,
 		&i.Config,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Description,
 		&i.JsonSchema,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getTrigger = `-- name: GetTrigger :one
-SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title FROM triggers WHERE id = ?
+SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at FROM triggers WHERE id = ?
 `
 
 func (q *Queries) GetTrigger(ctx context.Context, id string) (Trigger, error) {
@@ -468,16 +464,16 @@ func (q *Queries) GetTrigger(ctx context.Context, id string) (Trigger, error) {
 		&i.CronExpr,
 		&i.Enabled,
 		&i.NextRunAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Model,
 		&i.ConversationTitle,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listAgents = `-- name: ListAgents :many
-SELECT id, name, description, system_prompt, enabled_tools, created_at, updated_at, enabled_notification_channels, model FROM agents ORDER BY created_at DESC
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at FROM agents ORDER BY created_at DESC
 `
 
 func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
@@ -495,10 +491,10 @@ func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
 			&i.Description,
 			&i.SystemPrompt,
 			&i.EnabledTools,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.EnabledNotificationChannels,
 			&i.Model,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -548,7 +544,7 @@ func (q *Queries) ListAllConversations(ctx context.Context) ([]Conversation, err
 }
 
 const listAllTriggers = `-- name: ListAllTriggers :many
-SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title FROM triggers ORDER BY created_at DESC
+SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at FROM triggers ORDER BY created_at DESC
 `
 
 func (q *Queries) ListAllTriggers(ctx context.Context) ([]Trigger, error) {
@@ -568,10 +564,10 @@ func (q *Queries) ListAllTriggers(ctx context.Context) ([]Trigger, error) {
 			&i.CronExpr,
 			&i.Enabled,
 			&i.NextRunAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Model,
 			&i.ConversationTitle,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -621,7 +617,7 @@ func (q *Queries) ListConversations(ctx context.Context, agentID string) ([]Conv
 }
 
 const listNotificationChannels = `-- name: ListNotificationChannels :many
-SELECT id, name, type, config, created_at, updated_at, description, json_schema FROM notification_channels ORDER BY created_at DESC
+SELECT id, name, type, config, description, json_schema, created_at, updated_at FROM notification_channels ORDER BY created_at DESC
 `
 
 func (q *Queries) ListNotificationChannels(ctx context.Context) ([]NotificationChannel, error) {
@@ -638,10 +634,10 @@ func (q *Queries) ListNotificationChannels(ctx context.Context) ([]NotificationC
 			&i.Name,
 			&i.Type,
 			&i.Config,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Description,
 			&i.JsonSchema,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -697,7 +693,7 @@ func (q *Queries) ListTriggerRuns(ctx context.Context, arg ListTriggerRunsParams
 }
 
 const listTriggersByAgent = `-- name: ListTriggersByAgent :many
-SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title FROM triggers WHERE agent_id = ? ORDER BY created_at DESC
+SELECT id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at FROM triggers WHERE agent_id = ? ORDER BY created_at DESC
 `
 
 func (q *Queries) ListTriggersByAgent(ctx context.Context, agentID string) ([]Trigger, error) {
@@ -717,10 +713,10 @@ func (q *Queries) ListTriggersByAgent(ctx context.Context, agentID string) ([]Tr
 			&i.CronExpr,
 			&i.Enabled,
 			&i.NextRunAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Model,
 			&i.ConversationTitle,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -739,7 +735,7 @@ const updateAgent = `-- name: UpdateAgent :one
 UPDATE agents
 SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, model = ?, updated_at = ?
 WHERE id = ?
-RETURNING id, name, description, system_prompt, enabled_tools, created_at, updated_at, enabled_notification_channels, model
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at
 `
 
 type UpdateAgentParams struct {
@@ -771,10 +767,10 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 		&i.Description,
 		&i.SystemPrompt,
 		&i.EnabledTools,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.EnabledNotificationChannels,
 		&i.Model,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -814,7 +810,7 @@ func (q *Queries) UpdateConversation(ctx context.Context, arg UpdateConversation
 
 const updateNotificationChannel = `-- name: UpdateNotificationChannel :one
 UPDATE notification_channels SET name = ?, type = ?, config = ?, description = ?, json_schema = ?, updated_at = ?
-WHERE id = ? RETURNING id, name, type, config, created_at, updated_at, description, json_schema
+WHERE id = ? RETURNING id, name, type, config, description, json_schema, created_at, updated_at
 `
 
 type UpdateNotificationChannelParams struct {
@@ -843,17 +839,17 @@ func (q *Queries) UpdateNotificationChannel(ctx context.Context, arg UpdateNotif
 		&i.Name,
 		&i.Type,
 		&i.Config,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Description,
 		&i.JsonSchema,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const updateTrigger = `-- name: UpdateTrigger :one
 UPDATE triggers SET name = ?, prompt = ?, cron_expr = ?, enabled = ?, next_run_at = ?, updated_at = ?
-WHERE id = ? RETURNING id, agent_id, name, prompt, cron_expr, enabled, next_run_at, created_at, updated_at, model, conversation_title
+WHERE id = ? RETURNING id, agent_id, name, prompt, cron_expr, enabled, next_run_at, model, conversation_title, created_at, updated_at
 `
 
 type UpdateTriggerParams struct {
@@ -885,10 +881,10 @@ func (q *Queries) UpdateTrigger(ctx context.Context, arg UpdateTriggerParams) (T
 		&i.CronExpr,
 		&i.Enabled,
 		&i.NextRunAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Model,
 		&i.ConversationTitle,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

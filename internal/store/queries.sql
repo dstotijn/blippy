@@ -42,8 +42,8 @@ RETURNING *;
 DELETE FROM conversations WHERE id = ?;
 
 -- name: CreateMessage :one
-INSERT INTO messages (id, conversation_id, role, content, tool_executions, created_at)
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO messages (id, conversation_id, role, items, created_at)
+VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetMessagesByConversation :many

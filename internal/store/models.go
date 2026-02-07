@@ -14,10 +14,10 @@ type Agent struct {
 	Description                 string
 	SystemPrompt                string
 	EnabledTools                string
-	CreatedAt                   string
-	UpdatedAt                   string
 	EnabledNotificationChannels string
 	Model                       string
+	CreatedAt                   string
+	UpdatedAt                   string
 }
 
 type Conversation struct {
@@ -33,9 +33,8 @@ type Message struct {
 	ID             string
 	ConversationID string
 	Role           string
-	Content        string
+	Items          string
 	CreatedAt      string
-	ToolExecutions string
 }
 
 type NotificationChannel struct {
@@ -43,10 +42,10 @@ type NotificationChannel struct {
 	Name        string
 	Type        string
 	Config      string
-	CreatedAt   string
-	UpdatedAt   string
 	Description string
 	JsonSchema  string
+	CreatedAt   string
+	UpdatedAt   string
 }
 
 type Trigger struct {
@@ -57,10 +56,10 @@ type Trigger struct {
 	CronExpr          sql.NullString
 	Enabled           int64
 	NextRunAt         sql.NullString
-	CreatedAt         string
-	UpdatedAt         string
 	Model             string
 	ConversationTitle string
+	CreatedAt         string
+	UpdatedAt         string
 }
 
 type TriggerRun struct {
