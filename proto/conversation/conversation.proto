@@ -73,37 +73,49 @@ message ChatRequest {
   string content = 2;
 }
 
-// Streaming response events
-message ChatEvent {
+message ChatResponse {
+  string user_message_id = 1;
+}
+
+// WatchEvents streaming events
+message WatchEventsRequest {
+  string conversation_id = 1;
+}
+
+message WatchEventsEvent {
   oneof event {
-    ChatDelta delta = 1;
-    ChatDone done = 2;
-    ChatError error = 3;
-    ToolExecution tool_execution = 4;
+    TextDelta text_delta = 1;
+    ToolResult tool_result = 2;
+    MessageCreated message_created = 3;
+    WatchError error = 4;
+    TurnDone done = 5;
+    TurnStarted turn_started = 6;
   }
 }
 
-message ChatDelta {
-  string content = 1;  // partial token
+message TextDelta {
+  string content = 1;
 }
 
-message ChatDone {
-  string user_message_id = 1;
-  string assistant_message_id = 2;
-  string response_id = 3;  // OpenResponses response_id for chaining
-  string title = 4;  // Set when title was generated (first turn only)
+message ToolResult {
+  string name = 1;
+  string input = 2;
+  string result = 3;
 }
 
-message ChatError {
+message MessageCreated {
+  Message message = 1;
+}
+
+message WatchError {
   string message = 1;
 }
 
-message ToolExecution {
-  string name = 1;    // tool name (e.g., "bash", "fetch_url")
-  string status = 2;  // "executing", "completed", "error"
-  string result = 3;  // tool output (when completed)
-  string input = 4;   // tool input/arguments as JSON
+message TurnDone {
+  string title = 1;
 }
+
+message TurnStarted {}
 
 message Empty {}
 
@@ -113,5 +125,6 @@ service ConversationService {
   rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
   rpc DeleteConversation(DeleteConversationRequest) returns (Empty);
   rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
-  rpc Chat(ChatRequest) returns (stream ChatEvent);
+  rpc Chat(ChatRequest) returns (ChatResponse);
+  rpc WatchEvents(WatchEventsRequest) returns (stream WatchEventsEvent);
 }

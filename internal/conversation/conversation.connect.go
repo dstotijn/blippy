@@ -50,6 +50,9 @@ const (
 	// ConversationServiceChatProcedure is the fully-qualified name of the ConversationService's Chat
 	// RPC.
 	ConversationServiceChatProcedure = "/blippy.conversation.ConversationService/Chat"
+	// ConversationServiceWatchEventsProcedure is the fully-qualified name of the ConversationService's
+	// WatchEvents RPC.
+	ConversationServiceWatchEventsProcedure = "/blippy.conversation.ConversationService/WatchEvents"
 )
 
 // ConversationServiceClient is a client for the blippy.conversation.ConversationService service.
@@ -59,7 +62,8 @@ type ConversationServiceClient interface {
 	ListConversations(context.Context, *connect.Request[ListConversationsRequest]) (*connect.Response[ListConversationsResponse], error)
 	DeleteConversation(context.Context, *connect.Request[DeleteConversationRequest]) (*connect.Response[Empty], error)
 	GetMessages(context.Context, *connect.Request[GetMessagesRequest]) (*connect.Response[GetMessagesResponse], error)
-	Chat(context.Context, *connect.Request[ChatRequest]) (*connect.ServerStreamForClient[ChatEvent], error)
+	Chat(context.Context, *connect.Request[ChatRequest]) (*connect.Response[ChatResponse], error)
+	WatchEvents(context.Context, *connect.Request[WatchEventsRequest]) (*connect.ServerStreamForClient[WatchEventsEvent], error)
 }
 
 // NewConversationServiceClient constructs a client for the blippy.conversation.ConversationService
@@ -103,10 +107,16 @@ func NewConversationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(conversationServiceMethods.ByName("GetMessages")),
 			connect.WithClientOptions(opts...),
 		),
-		chat: connect.NewClient[ChatRequest, ChatEvent](
+		chat: connect.NewClient[ChatRequest, ChatResponse](
 			httpClient,
 			baseURL+ConversationServiceChatProcedure,
 			connect.WithSchema(conversationServiceMethods.ByName("Chat")),
+			connect.WithClientOptions(opts...),
+		),
+		watchEvents: connect.NewClient[WatchEventsRequest, WatchEventsEvent](
+			httpClient,
+			baseURL+ConversationServiceWatchEventsProcedure,
+			connect.WithSchema(conversationServiceMethods.ByName("WatchEvents")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -119,7 +129,8 @@ type conversationServiceClient struct {
 	listConversations  *connect.Client[ListConversationsRequest, ListConversationsResponse]
 	deleteConversation *connect.Client[DeleteConversationRequest, Empty]
 	getMessages        *connect.Client[GetMessagesRequest, GetMessagesResponse]
-	chat               *connect.Client[ChatRequest, ChatEvent]
+	chat               *connect.Client[ChatRequest, ChatResponse]
+	watchEvents        *connect.Client[WatchEventsRequest, WatchEventsEvent]
 }
 
 // CreateConversation calls blippy.conversation.ConversationService.CreateConversation.
@@ -148,8 +159,13 @@ func (c *conversationServiceClient) GetMessages(ctx context.Context, req *connec
 }
 
 // Chat calls blippy.conversation.ConversationService.Chat.
-func (c *conversationServiceClient) Chat(ctx context.Context, req *connect.Request[ChatRequest]) (*connect.ServerStreamForClient[ChatEvent], error) {
-	return c.chat.CallServerStream(ctx, req)
+func (c *conversationServiceClient) Chat(ctx context.Context, req *connect.Request[ChatRequest]) (*connect.Response[ChatResponse], error) {
+	return c.chat.CallUnary(ctx, req)
+}
+
+// WatchEvents calls blippy.conversation.ConversationService.WatchEvents.
+func (c *conversationServiceClient) WatchEvents(ctx context.Context, req *connect.Request[WatchEventsRequest]) (*connect.ServerStreamForClient[WatchEventsEvent], error) {
+	return c.watchEvents.CallServerStream(ctx, req)
 }
 
 // ConversationServiceHandler is an implementation of the blippy.conversation.ConversationService
@@ -160,7 +176,8 @@ type ConversationServiceHandler interface {
 	ListConversations(context.Context, *connect.Request[ListConversationsRequest]) (*connect.Response[ListConversationsResponse], error)
 	DeleteConversation(context.Context, *connect.Request[DeleteConversationRequest]) (*connect.Response[Empty], error)
 	GetMessages(context.Context, *connect.Request[GetMessagesRequest]) (*connect.Response[GetMessagesResponse], error)
-	Chat(context.Context, *connect.Request[ChatRequest], *connect.ServerStream[ChatEvent]) error
+	Chat(context.Context, *connect.Request[ChatRequest]) (*connect.Response[ChatResponse], error)
+	WatchEvents(context.Context, *connect.Request[WatchEventsRequest], *connect.ServerStream[WatchEventsEvent]) error
 }
 
 // NewConversationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -200,10 +217,16 @@ func NewConversationServiceHandler(svc ConversationServiceHandler, opts ...conne
 		connect.WithSchema(conversationServiceMethods.ByName("GetMessages")),
 		connect.WithHandlerOptions(opts...),
 	)
-	conversationServiceChatHandler := connect.NewServerStreamHandler(
+	conversationServiceChatHandler := connect.NewUnaryHandler(
 		ConversationServiceChatProcedure,
 		svc.Chat,
 		connect.WithSchema(conversationServiceMethods.ByName("Chat")),
+		connect.WithHandlerOptions(opts...),
+	)
+	conversationServiceWatchEventsHandler := connect.NewServerStreamHandler(
+		ConversationServiceWatchEventsProcedure,
+		svc.WatchEvents,
+		connect.WithSchema(conversationServiceMethods.ByName("WatchEvents")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/blippy.conversation.ConversationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -220,6 +243,8 @@ func NewConversationServiceHandler(svc ConversationServiceHandler, opts ...conne
 			conversationServiceGetMessagesHandler.ServeHTTP(w, r)
 		case ConversationServiceChatProcedure:
 			conversationServiceChatHandler.ServeHTTP(w, r)
+		case ConversationServiceWatchEventsProcedure:
+			conversationServiceWatchEventsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -249,6 +274,10 @@ func (UnimplementedConversationServiceHandler) GetMessages(context.Context, *con
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blippy.conversation.ConversationService.GetMessages is not implemented"))
 }
 
-func (UnimplementedConversationServiceHandler) Chat(context.Context, *connect.Request[ChatRequest], *connect.ServerStream[ChatEvent]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("blippy.conversation.ConversationService.Chat is not implemented"))
+func (UnimplementedConversationServiceHandler) Chat(context.Context, *connect.Request[ChatRequest]) (*connect.Response[ChatResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blippy.conversation.ConversationService.Chat is not implemented"))
+}
+
+func (UnimplementedConversationServiceHandler) WatchEvents(context.Context, *connect.Request[WatchEventsRequest], *connect.ServerStream[WatchEventsEvent]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("blippy.conversation.ConversationService.WatchEvents is not implemented"))
 }

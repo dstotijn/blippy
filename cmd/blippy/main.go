@@ -13,6 +13,7 @@ import (
 	"github.com/dstotijn/blippy/internal/conversation"
 	"github.com/dstotijn/blippy/internal/notification"
 	"github.com/dstotijn/blippy/internal/openrouter"
+	"github.com/dstotijn/blippy/internal/pubsub"
 	"github.com/dstotijn/blippy/internal/runner"
 	"github.com/dstotijn/blippy/internal/scheduler"
 	"github.com/dstotijn/blippy/internal/server"
@@ -61,8 +62,11 @@ func run() error {
 	}
 	toolExecutor := tool.NewExecutor(toolRegistry, notificationService)
 
+	// Create broker for pub/sub events
+	broker := pubsub.New()
+
 	// Create runner for autonomous execution
-	agentRunner := runner.New(queries, orClient, model, toolExecutor)
+	agentRunner := runner.New(queries, orClient, model, toolExecutor, broker)
 	runnerAdapter := runner.NewAdapter(agentRunner)
 
 	// Register autonomous tools
@@ -78,7 +82,7 @@ func run() error {
 	defer sched.Stop()
 
 	agentService := agent.NewService(db, orClient)
-	conversationService := conversation.NewService(db, orClient, model, toolExecutor)
+	conversationService := conversation.NewService(db, orClient, model, toolExecutor, broker)
 	triggerRPCService := trigger.NewService(db)
 	notificationRPCService := notification.NewService(db)
 	webhookHandler := webhook.New(queries, agentRunner, logger)

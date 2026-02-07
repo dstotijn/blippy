@@ -12,7 +12,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file conversation/conversation.proto.
  */
 export const file_conversation_conversation: GenFile = /*@__PURE__*/
-  fileDesc("Ch9jb252ZXJzYXRpb24vY29udmVyc2F0aW9uLnByb3RvEhNibGlwcHkuY29udmVyc2F0aW9uIrkBCgxDb252ZXJzYXRpb24SCgoCaWQYASABKAkSEAoIYWdlbnRfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSHAoUcHJldmlvdXNfcmVzcG9uc2VfaWQYBCABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAinQEKB01lc3NhZ2USCgoCaWQYASABKAkSFwoPY29udmVyc2F0aW9uX2lkGAIgASgJEgwKBHJvbGUYAyABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoFaXRlbXMYByADKAsyIC5ibGlwcHkuY29udmVyc2F0aW9uLk1lc3NhZ2VJdGVtIoYBCgtNZXNzYWdlSXRlbRItCgR0ZXh0GAEgASgLMh0uYmxpcHB5LmNvbnZlcnNhdGlvbi5UZXh0SXRlbUgAEkAKDnRvb2xfZXhlY3V0aW9uGAIgASgLMiYuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSXRlbUgAQgYKBGl0ZW0iGwoIVGV4dEl0ZW0SDwoHY29udGVudBgBIAEoCSJAChFUb29sRXhlY3V0aW9uSXRlbRIMCgRuYW1lGAEgASgJEg0KBWlucHV0GAIgASgJEg4KBnJlc3VsdBgDIAEoCSItChlDcmVhdGVDb252ZXJzYXRpb25SZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIiQKFkdldENvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLAoYTGlzdENvbnZlcnNhdGlvbnNSZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIlUKGUxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USOAoNY29udmVyc2F0aW9ucxgBIAMoCzIhLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uIicKGURlbGV0ZUNvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLQoSR2V0TWVzc2FnZXNSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCSJFChNHZXRNZXNzYWdlc1Jlc3BvbnNlEi4KCG1lc3NhZ2VzGAEgAygLMhwuYmxpcHB5LmNvbnZlcnNhdGlvbi5NZXNzYWdlIjcKC0NoYXRSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJIuMBCglDaGF0RXZlbnQSLwoFZGVsdGEYASABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREZWx0YUgAEi0KBGRvbmUYAiABKAsyHS5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXREb25lSAASLwoFZXJyb3IYAyABKAsyHi5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRFcnJvckgAEjwKDnRvb2xfZXhlY3V0aW9uGAQgASgLMiIuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSABCBwoFZXZlbnQiHAoJQ2hhdERlbHRhEg8KB2NvbnRlbnQYASABKAkiZQoIQ2hhdERvbmUSFwoPdXNlcl9tZXNzYWdlX2lkGAEgASgJEhwKFGFzc2lzdGFudF9tZXNzYWdlX2lkGAIgASgJEhMKC3Jlc3BvbnNlX2lkGAMgASgJEg0KBXRpdGxlGAQgASgJIhwKCUNoYXRFcnJvchIPCgdtZXNzYWdlGAEgASgJIkwKDVRvb2xFeGVjdXRpb24SDAoEbmFtZRgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDgoGcmVzdWx0GAMgASgJEg0KBWlucHV0GAQgASgJIgcKBUVtcHR5MuUEChNDb252ZXJzYXRpb25TZXJ2aWNlEmcKEkNyZWF0ZUNvbnZlcnNhdGlvbhIuLmJsaXBweS5jb252ZXJzYXRpb24uQ3JlYXRlQ29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEmEKD0dldENvbnZlcnNhdGlvbhIrLmJsaXBweS5jb252ZXJzYXRpb24uR2V0Q29udmVyc2F0aW9uUmVxdWVzdBohLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uEnIKEUxpc3RDb252ZXJzYXRpb25zEi0uYmxpcHB5LmNvbnZlcnNhdGlvbi5MaXN0Q29udmVyc2F0aW9uc1JlcXVlc3QaLi5ibGlwcHkuY29udmVyc2F0aW9uLkxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USYAoSRGVsZXRlQ29udmVyc2F0aW9uEi4uYmxpcHB5LmNvbnZlcnNhdGlvbi5EZWxldGVDb252ZXJzYXRpb25SZXF1ZXN0GhouYmxpcHB5LmNvbnZlcnNhdGlvbi5FbXB0eRJgCgtHZXRNZXNzYWdlcxInLmJsaXBweS5jb252ZXJzYXRpb24uR2V0TWVzc2FnZXNSZXF1ZXN0GiguYmxpcHB5LmNvbnZlcnNhdGlvbi5HZXRNZXNzYWdlc1Jlc3BvbnNlEkoKBENoYXQSIC5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRSZXF1ZXN0Gh4uYmxpcHB5LmNvbnZlcnNhdGlvbi5DaGF0RXZlbnQwAUIyWjBnaXRodWIuY29tL2RzdG90aWpuL2JsaXBweS9pbnRlcm5hbC9jb252ZXJzYXRpb25iBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("Ch9jb252ZXJzYXRpb24vY29udmVyc2F0aW9uLnByb3RvEhNibGlwcHkuY29udmVyc2F0aW9uIrkBCgxDb252ZXJzYXRpb24SCgoCaWQYASABKAkSEAoIYWdlbnRfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSHAoUcHJldmlvdXNfcmVzcG9uc2VfaWQYBCABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAinQEKB01lc3NhZ2USCgoCaWQYASABKAkSFwoPY29udmVyc2F0aW9uX2lkGAIgASgJEgwKBHJvbGUYAyABKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoFaXRlbXMYByADKAsyIC5ibGlwcHkuY29udmVyc2F0aW9uLk1lc3NhZ2VJdGVtIoYBCgtNZXNzYWdlSXRlbRItCgR0ZXh0GAEgASgLMh0uYmxpcHB5LmNvbnZlcnNhdGlvbi5UZXh0SXRlbUgAEkAKDnRvb2xfZXhlY3V0aW9uGAIgASgLMiYuYmxpcHB5LmNvbnZlcnNhdGlvbi5Ub29sRXhlY3V0aW9uSXRlbUgAQgYKBGl0ZW0iGwoIVGV4dEl0ZW0SDwoHY29udGVudBgBIAEoCSJAChFUb29sRXhlY3V0aW9uSXRlbRIMCgRuYW1lGAEgASgJEg0KBWlucHV0GAIgASgJEg4KBnJlc3VsdBgDIAEoCSItChlDcmVhdGVDb252ZXJzYXRpb25SZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIiQKFkdldENvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLAoYTGlzdENvbnZlcnNhdGlvbnNSZXF1ZXN0EhAKCGFnZW50X2lkGAEgASgJIlUKGUxpc3RDb252ZXJzYXRpb25zUmVzcG9uc2USOAoNY29udmVyc2F0aW9ucxgBIAMoCzIhLmJsaXBweS5jb252ZXJzYXRpb24uQ29udmVyc2F0aW9uIicKGURlbGV0ZUNvbnZlcnNhdGlvblJlcXVlc3QSCgoCaWQYASABKAkiLQoSR2V0TWVzc2FnZXNSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCSJFChNHZXRNZXNzYWdlc1Jlc3BvbnNlEi4KCG1lc3NhZ2VzGAEgAygLMhwuYmxpcHB5LmNvbnZlcnNhdGlvbi5NZXNzYWdlIjcKC0NoYXRSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJIicKDENoYXRSZXNwb25zZRIXCg91c2VyX21lc3NhZ2VfaWQYASABKAkiLQoSV2F0Y2hFdmVudHNSZXF1ZXN0EhcKD2NvbnZlcnNhdGlvbl9pZBgBIAEoCSLkAgoQV2F0Y2hFdmVudHNFdmVudBI0Cgp0ZXh0X2RlbHRhGAEgASgLMh4uYmxpcHB5LmNvbnZlcnNhdGlvbi5UZXh0RGVsdGFIABI2Cgt0b29sX3Jlc3VsdBgCIAEoCzIfLmJsaXBweS5jb252ZXJzYXRpb24uVG9vbFJlc3VsdEgAEj4KD21lc3NhZ2VfY3JlYXRlZBgDIAEoCzIjLmJsaXBweS5jb252ZXJzYXRpb24uTWVzc2FnZUNyZWF0ZWRIABIwCgVlcnJvchgEIAEoCzIfLmJsaXBweS5jb252ZXJzYXRpb24uV2F0Y2hFcnJvckgAEi0KBGRvbmUYBSABKAsyHS5ibGlwcHkuY29udmVyc2F0aW9uLlR1cm5Eb25lSAASOAoMdHVybl9zdGFydGVkGAYgASgLMiAuYmxpcHB5LmNvbnZlcnNhdGlvbi5UdXJuU3RhcnRlZEgAQgcKBWV2ZW50IhwKCVRleHREZWx0YRIPCgdjb250ZW50GAEgASgJIjkKClRvb2xSZXN1bHQSDAoEbmFtZRgBIAEoCRINCgVpbnB1dBgCIAEoCRIOCgZyZXN1bHQYAyABKAkiPwoOTWVzc2FnZUNyZWF0ZWQSLQoHbWVzc2FnZRgBIAEoCzIcLmJsaXBweS5jb252ZXJzYXRpb24uTWVzc2FnZSIdCgpXYXRjaEVycm9yEg8KB21lc3NhZ2UYASABKAkiGQoIVHVybkRvbmUSDQoFdGl0bGUYASABKAkiDQoLVHVyblN0YXJ0ZWQiBwoFRW1wdHkyxwUKE0NvbnZlcnNhdGlvblNlcnZpY2USZwoSQ3JlYXRlQ29udmVyc2F0aW9uEi4uYmxpcHB5LmNvbnZlcnNhdGlvbi5DcmVhdGVDb252ZXJzYXRpb25SZXF1ZXN0GiEuYmxpcHB5LmNvbnZlcnNhdGlvbi5Db252ZXJzYXRpb24SYQoPR2V0Q29udmVyc2F0aW9uEisuYmxpcHB5LmNvbnZlcnNhdGlvbi5HZXRDb252ZXJzYXRpb25SZXF1ZXN0GiEuYmxpcHB5LmNvbnZlcnNhdGlvbi5Db252ZXJzYXRpb24ScgoRTGlzdENvbnZlcnNhdGlvbnMSLS5ibGlwcHkuY29udmVyc2F0aW9uLkxpc3RDb252ZXJzYXRpb25zUmVxdWVzdBouLmJsaXBweS5jb252ZXJzYXRpb24uTGlzdENvbnZlcnNhdGlvbnNSZXNwb25zZRJgChJEZWxldGVDb252ZXJzYXRpb24SLi5ibGlwcHkuY29udmVyc2F0aW9uLkRlbGV0ZUNvbnZlcnNhdGlvblJlcXVlc3QaGi5ibGlwcHkuY29udmVyc2F0aW9uLkVtcHR5EmAKC0dldE1lc3NhZ2VzEicuYmxpcHB5LmNvbnZlcnNhdGlvbi5HZXRNZXNzYWdlc1JlcXVlc3QaKC5ibGlwcHkuY29udmVyc2F0aW9uLkdldE1lc3NhZ2VzUmVzcG9uc2USSwoEQ2hhdBIgLmJsaXBweS5jb252ZXJzYXRpb24uQ2hhdFJlcXVlc3QaIS5ibGlwcHkuY29udmVyc2F0aW9uLkNoYXRSZXNwb25zZRJfCgtXYXRjaEV2ZW50cxInLmJsaXBweS5jb252ZXJzYXRpb24uV2F0Y2hFdmVudHNSZXF1ZXN0GiUuYmxpcHB5LmNvbnZlcnNhdGlvbi5XYXRjaEV2ZW50c0V2ZW50MAFCMlowZ2l0aHViLmNvbS9kc3RvdGlqbi9ibGlwcHkvaW50ZXJuYWwvY29udmVyc2F0aW9uYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message blippy.conversation.Conversation
@@ -314,107 +314,159 @@ export const ChatRequestSchema: GenMessage<ChatRequest> = /*@__PURE__*/
   messageDesc(file_conversation_conversation, 12);
 
 /**
- * Streaming response events
- *
- * @generated from message blippy.conversation.ChatEvent
+ * @generated from message blippy.conversation.ChatResponse
  */
-export type ChatEvent = Message$1<"blippy.conversation.ChatEvent"> & {
+export type ChatResponse = Message$1<"blippy.conversation.ChatResponse"> & {
   /**
-   * @generated from oneof blippy.conversation.ChatEvent.event
+   * @generated from field: string user_message_id = 1;
+   */
+  userMessageId: string;
+};
+
+/**
+ * Describes the message blippy.conversation.ChatResponse.
+ * Use `create(ChatResponseSchema)` to create a new message.
+ */
+export const ChatResponseSchema: GenMessage<ChatResponse> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 13);
+
+/**
+ * WatchEvents streaming events
+ *
+ * @generated from message blippy.conversation.WatchEventsRequest
+ */
+export type WatchEventsRequest = Message$1<"blippy.conversation.WatchEventsRequest"> & {
+  /**
+   * @generated from field: string conversation_id = 1;
+   */
+  conversationId: string;
+};
+
+/**
+ * Describes the message blippy.conversation.WatchEventsRequest.
+ * Use `create(WatchEventsRequestSchema)` to create a new message.
+ */
+export const WatchEventsRequestSchema: GenMessage<WatchEventsRequest> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 14);
+
+/**
+ * @generated from message blippy.conversation.WatchEventsEvent
+ */
+export type WatchEventsEvent = Message$1<"blippy.conversation.WatchEventsEvent"> & {
+  /**
+   * @generated from oneof blippy.conversation.WatchEventsEvent.event
    */
   event: {
     /**
-     * @generated from field: blippy.conversation.ChatDelta delta = 1;
+     * @generated from field: blippy.conversation.TextDelta text_delta = 1;
      */
-    value: ChatDelta;
-    case: "delta";
+    value: TextDelta;
+    case: "textDelta";
   } | {
     /**
-     * @generated from field: blippy.conversation.ChatDone done = 2;
+     * @generated from field: blippy.conversation.ToolResult tool_result = 2;
      */
-    value: ChatDone;
-    case: "done";
+    value: ToolResult;
+    case: "toolResult";
   } | {
     /**
-     * @generated from field: blippy.conversation.ChatError error = 3;
+     * @generated from field: blippy.conversation.MessageCreated message_created = 3;
      */
-    value: ChatError;
+    value: MessageCreated;
+    case: "messageCreated";
+  } | {
+    /**
+     * @generated from field: blippy.conversation.WatchError error = 4;
+     */
+    value: WatchError;
     case: "error";
   } | {
     /**
-     * @generated from field: blippy.conversation.ToolExecution tool_execution = 4;
+     * @generated from field: blippy.conversation.TurnDone done = 5;
      */
-    value: ToolExecution;
-    case: "toolExecution";
+    value: TurnDone;
+    case: "done";
+  } | {
+    /**
+     * @generated from field: blippy.conversation.TurnStarted turn_started = 6;
+     */
+    value: TurnStarted;
+    case: "turnStarted";
   } | { case: undefined; value?: undefined };
 };
 
 /**
- * Describes the message blippy.conversation.ChatEvent.
- * Use `create(ChatEventSchema)` to create a new message.
+ * Describes the message blippy.conversation.WatchEventsEvent.
+ * Use `create(WatchEventsEventSchema)` to create a new message.
  */
-export const ChatEventSchema: GenMessage<ChatEvent> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 13);
+export const WatchEventsEventSchema: GenMessage<WatchEventsEvent> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 15);
 
 /**
- * @generated from message blippy.conversation.ChatDelta
+ * @generated from message blippy.conversation.TextDelta
  */
-export type ChatDelta = Message$1<"blippy.conversation.ChatDelta"> & {
+export type TextDelta = Message$1<"blippy.conversation.TextDelta"> & {
   /**
-   * partial token
-   *
    * @generated from field: string content = 1;
    */
   content: string;
 };
 
 /**
- * Describes the message blippy.conversation.ChatDelta.
- * Use `create(ChatDeltaSchema)` to create a new message.
+ * Describes the message blippy.conversation.TextDelta.
+ * Use `create(TextDeltaSchema)` to create a new message.
  */
-export const ChatDeltaSchema: GenMessage<ChatDelta> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 14);
+export const TextDeltaSchema: GenMessage<TextDelta> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 16);
 
 /**
- * @generated from message blippy.conversation.ChatDone
+ * @generated from message blippy.conversation.ToolResult
  */
-export type ChatDone = Message$1<"blippy.conversation.ChatDone"> & {
+export type ToolResult = Message$1<"blippy.conversation.ToolResult"> & {
   /**
-   * @generated from field: string user_message_id = 1;
+   * @generated from field: string name = 1;
    */
-  userMessageId: string;
+  name: string;
 
   /**
-   * @generated from field: string assistant_message_id = 2;
+   * @generated from field: string input = 2;
    */
-  assistantMessageId: string;
+  input: string;
 
   /**
-   * OpenResponses response_id for chaining
-   *
-   * @generated from field: string response_id = 3;
+   * @generated from field: string result = 3;
    */
-  responseId: string;
-
-  /**
-   * Set when title was generated (first turn only)
-   *
-   * @generated from field: string title = 4;
-   */
-  title: string;
+  result: string;
 };
 
 /**
- * Describes the message blippy.conversation.ChatDone.
- * Use `create(ChatDoneSchema)` to create a new message.
+ * Describes the message blippy.conversation.ToolResult.
+ * Use `create(ToolResultSchema)` to create a new message.
  */
-export const ChatDoneSchema: GenMessage<ChatDone> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 15);
+export const ToolResultSchema: GenMessage<ToolResult> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 17);
 
 /**
- * @generated from message blippy.conversation.ChatError
+ * @generated from message blippy.conversation.MessageCreated
  */
-export type ChatError = Message$1<"blippy.conversation.ChatError"> & {
+export type MessageCreated = Message$1<"blippy.conversation.MessageCreated"> & {
+  /**
+   * @generated from field: blippy.conversation.Message message = 1;
+   */
+  message?: Message;
+};
+
+/**
+ * Describes the message blippy.conversation.MessageCreated.
+ * Use `create(MessageCreatedSchema)` to create a new message.
+ */
+export const MessageCreatedSchema: GenMessage<MessageCreated> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 18);
+
+/**
+ * @generated from message blippy.conversation.WatchError
+ */
+export type WatchError = Message$1<"blippy.conversation.WatchError"> & {
   /**
    * @generated from field: string message = 1;
    */
@@ -422,51 +474,41 @@ export type ChatError = Message$1<"blippy.conversation.ChatError"> & {
 };
 
 /**
- * Describes the message blippy.conversation.ChatError.
- * Use `create(ChatErrorSchema)` to create a new message.
+ * Describes the message blippy.conversation.WatchError.
+ * Use `create(WatchErrorSchema)` to create a new message.
  */
-export const ChatErrorSchema: GenMessage<ChatError> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 16);
+export const WatchErrorSchema: GenMessage<WatchError> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 19);
 
 /**
- * @generated from message blippy.conversation.ToolExecution
+ * @generated from message blippy.conversation.TurnDone
  */
-export type ToolExecution = Message$1<"blippy.conversation.ToolExecution"> & {
+export type TurnDone = Message$1<"blippy.conversation.TurnDone"> & {
   /**
-   * tool name (e.g., "bash", "fetch_url")
-   *
-   * @generated from field: string name = 1;
+   * @generated from field: string title = 1;
    */
-  name: string;
-
-  /**
-   * "executing", "completed", "error"
-   *
-   * @generated from field: string status = 2;
-   */
-  status: string;
-
-  /**
-   * tool output (when completed)
-   *
-   * @generated from field: string result = 3;
-   */
-  result: string;
-
-  /**
-   * tool input/arguments as JSON
-   *
-   * @generated from field: string input = 4;
-   */
-  input: string;
+  title: string;
 };
 
 /**
- * Describes the message blippy.conversation.ToolExecution.
- * Use `create(ToolExecutionSchema)` to create a new message.
+ * Describes the message blippy.conversation.TurnDone.
+ * Use `create(TurnDoneSchema)` to create a new message.
  */
-export const ToolExecutionSchema: GenMessage<ToolExecution> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 17);
+export const TurnDoneSchema: GenMessage<TurnDone> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 20);
+
+/**
+ * @generated from message blippy.conversation.TurnStarted
+ */
+export type TurnStarted = Message$1<"blippy.conversation.TurnStarted"> & {
+};
+
+/**
+ * Describes the message blippy.conversation.TurnStarted.
+ * Use `create(TurnStartedSchema)` to create a new message.
+ */
+export const TurnStartedSchema: GenMessage<TurnStarted> = /*@__PURE__*/
+  messageDesc(file_conversation_conversation, 21);
 
 /**
  * @generated from message blippy.conversation.Empty
@@ -479,7 +521,7 @@ export type Empty = Message$1<"blippy.conversation.Empty"> & {
  * Use `create(EmptySchema)` to create a new message.
  */
 export const EmptySchema: GenMessage<Empty> = /*@__PURE__*/
-  messageDesc(file_conversation_conversation, 18);
+  messageDesc(file_conversation_conversation, 22);
 
 /**
  * @generated from service blippy.conversation.ConversationService
@@ -529,9 +571,17 @@ export const ConversationService: GenService<{
    * @generated from rpc blippy.conversation.ConversationService.Chat
    */
   chat: {
-    methodKind: "server_streaming";
+    methodKind: "unary";
     input: typeof ChatRequestSchema;
-    output: typeof ChatEventSchema;
+    output: typeof ChatResponseSchema;
+  },
+  /**
+   * @generated from rpc blippy.conversation.ConversationService.WatchEvents
+   */
+  watchEvents: {
+    methodKind: "server_streaming";
+    input: typeof WatchEventsRequestSchema;
+    output: typeof WatchEventsEventSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_conversation_conversation, 0);

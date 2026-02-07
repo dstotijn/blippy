@@ -728,34 +728,27 @@ func (x *ChatRequest) GetContent() string {
 	return ""
 }
 
-// Streaming response events
-type ChatEvent struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Event:
-	//
-	//	*ChatEvent_Delta
-	//	*ChatEvent_Done
-	//	*ChatEvent_Error
-	//	*ChatEvent_ToolExecution
-	Event         isChatEvent_Event `protobuf_oneof:"event"`
+type ChatResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserMessageId string                 `protobuf:"bytes,1,opt,name=user_message_id,json=userMessageId,proto3" json:"user_message_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ChatEvent) Reset() {
-	*x = ChatEvent{}
+func (x *ChatResponse) Reset() {
+	*x = ChatResponse{}
 	mi := &file_conversation_conversation_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ChatEvent) String() string {
+func (x *ChatResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ChatEvent) ProtoMessage() {}
+func (*ChatResponse) ProtoMessage() {}
 
-func (x *ChatEvent) ProtoReflect() protoreflect.Message {
+func (x *ChatResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_conversation_conversation_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -767,215 +760,230 @@ func (x *ChatEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ChatEvent.ProtoReflect.Descriptor instead.
-func (*ChatEvent) Descriptor() ([]byte, []int) {
+// Deprecated: Use ChatResponse.ProtoReflect.Descriptor instead.
+func (*ChatResponse) Descriptor() ([]byte, []int) {
 	return file_conversation_conversation_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *ChatEvent) GetEvent() isChatEvent_Event {
-	if x != nil {
-		return x.Event
-	}
-	return nil
-}
-
-func (x *ChatEvent) GetDelta() *ChatDelta {
-	if x != nil {
-		if x, ok := x.Event.(*ChatEvent_Delta); ok {
-			return x.Delta
-		}
-	}
-	return nil
-}
-
-func (x *ChatEvent) GetDone() *ChatDone {
-	if x != nil {
-		if x, ok := x.Event.(*ChatEvent_Done); ok {
-			return x.Done
-		}
-	}
-	return nil
-}
-
-func (x *ChatEvent) GetError() *ChatError {
-	if x != nil {
-		if x, ok := x.Event.(*ChatEvent_Error); ok {
-			return x.Error
-		}
-	}
-	return nil
-}
-
-func (x *ChatEvent) GetToolExecution() *ToolExecution {
-	if x != nil {
-		if x, ok := x.Event.(*ChatEvent_ToolExecution); ok {
-			return x.ToolExecution
-		}
-	}
-	return nil
-}
-
-type isChatEvent_Event interface {
-	isChatEvent_Event()
-}
-
-type ChatEvent_Delta struct {
-	Delta *ChatDelta `protobuf:"bytes,1,opt,name=delta,proto3,oneof"`
-}
-
-type ChatEvent_Done struct {
-	Done *ChatDone `protobuf:"bytes,2,opt,name=done,proto3,oneof"`
-}
-
-type ChatEvent_Error struct {
-	Error *ChatError `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
-}
-
-type ChatEvent_ToolExecution struct {
-	ToolExecution *ToolExecution `protobuf:"bytes,4,opt,name=tool_execution,json=toolExecution,proto3,oneof"`
-}
-
-func (*ChatEvent_Delta) isChatEvent_Event() {}
-
-func (*ChatEvent_Done) isChatEvent_Event() {}
-
-func (*ChatEvent_Error) isChatEvent_Event() {}
-
-func (*ChatEvent_ToolExecution) isChatEvent_Event() {}
-
-type ChatDelta struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"` // partial token
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ChatDelta) Reset() {
-	*x = ChatDelta{}
-	mi := &file_conversation_conversation_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChatDelta) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChatDelta) ProtoMessage() {}
-
-func (x *ChatDelta) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChatDelta.ProtoReflect.Descriptor instead.
-func (*ChatDelta) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *ChatDelta) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-type ChatDone struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	UserMessageId      string                 `protobuf:"bytes,1,opt,name=user_message_id,json=userMessageId,proto3" json:"user_message_id,omitempty"`
-	AssistantMessageId string                 `protobuf:"bytes,2,opt,name=assistant_message_id,json=assistantMessageId,proto3" json:"assistant_message_id,omitempty"`
-	ResponseId         string                 `protobuf:"bytes,3,opt,name=response_id,json=responseId,proto3" json:"response_id,omitempty"` // OpenResponses response_id for chaining
-	Title              string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`                             // Set when title was generated (first turn only)
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *ChatDone) Reset() {
-	*x = ChatDone{}
-	mi := &file_conversation_conversation_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChatDone) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChatDone) ProtoMessage() {}
-
-func (x *ChatDone) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChatDone.ProtoReflect.Descriptor instead.
-func (*ChatDone) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ChatDone) GetUserMessageId() string {
+func (x *ChatResponse) GetUserMessageId() string {
 	if x != nil {
 		return x.UserMessageId
 	}
 	return ""
 }
 
-func (x *ChatDone) GetAssistantMessageId() string {
+// WatchEvents streaming events
+type WatchEventsRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WatchEventsRequest) Reset() {
+	*x = WatchEventsRequest{}
+	mi := &file_conversation_conversation_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchEventsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchEventsRequest) ProtoMessage() {}
+
+func (x *WatchEventsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[14]
 	if x != nil {
-		return x.AssistantMessageId
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchEventsRequest.ProtoReflect.Descriptor instead.
+func (*WatchEventsRequest) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *WatchEventsRequest) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
 	}
 	return ""
 }
 
-func (x *ChatDone) GetResponseId() string {
-	if x != nil {
-		return x.ResponseId
-	}
-	return ""
-}
-
-func (x *ChatDone) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-type ChatError struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+type WatchEventsEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Event:
+	//
+	//	*WatchEventsEvent_TextDelta
+	//	*WatchEventsEvent_ToolResult
+	//	*WatchEventsEvent_MessageCreated
+	//	*WatchEventsEvent_Error
+	//	*WatchEventsEvent_Done
+	//	*WatchEventsEvent_TurnStarted
+	Event         isWatchEventsEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ChatError) Reset() {
-	*x = ChatError{}
+func (x *WatchEventsEvent) Reset() {
+	*x = WatchEventsEvent{}
+	mi := &file_conversation_conversation_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchEventsEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchEventsEvent) ProtoMessage() {}
+
+func (x *WatchEventsEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchEventsEvent.ProtoReflect.Descriptor instead.
+func (*WatchEventsEvent) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *WatchEventsEvent) GetEvent() isWatchEventsEvent_Event {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetTextDelta() *TextDelta {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_TextDelta); ok {
+			return x.TextDelta
+		}
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetToolResult() *ToolResult {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_ToolResult); ok {
+			return x.ToolResult
+		}
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetMessageCreated() *MessageCreated {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_MessageCreated); ok {
+			return x.MessageCreated
+		}
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetError() *WatchError {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_Error); ok {
+			return x.Error
+		}
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetDone() *TurnDone {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_Done); ok {
+			return x.Done
+		}
+	}
+	return nil
+}
+
+func (x *WatchEventsEvent) GetTurnStarted() *TurnStarted {
+	if x != nil {
+		if x, ok := x.Event.(*WatchEventsEvent_TurnStarted); ok {
+			return x.TurnStarted
+		}
+	}
+	return nil
+}
+
+type isWatchEventsEvent_Event interface {
+	isWatchEventsEvent_Event()
+}
+
+type WatchEventsEvent_TextDelta struct {
+	TextDelta *TextDelta `protobuf:"bytes,1,opt,name=text_delta,json=textDelta,proto3,oneof"`
+}
+
+type WatchEventsEvent_ToolResult struct {
+	ToolResult *ToolResult `protobuf:"bytes,2,opt,name=tool_result,json=toolResult,proto3,oneof"`
+}
+
+type WatchEventsEvent_MessageCreated struct {
+	MessageCreated *MessageCreated `protobuf:"bytes,3,opt,name=message_created,json=messageCreated,proto3,oneof"`
+}
+
+type WatchEventsEvent_Error struct {
+	Error *WatchError `protobuf:"bytes,4,opt,name=error,proto3,oneof"`
+}
+
+type WatchEventsEvent_Done struct {
+	Done *TurnDone `protobuf:"bytes,5,opt,name=done,proto3,oneof"`
+}
+
+type WatchEventsEvent_TurnStarted struct {
+	TurnStarted *TurnStarted `protobuf:"bytes,6,opt,name=turn_started,json=turnStarted,proto3,oneof"`
+}
+
+func (*WatchEventsEvent_TextDelta) isWatchEventsEvent_Event() {}
+
+func (*WatchEventsEvent_ToolResult) isWatchEventsEvent_Event() {}
+
+func (*WatchEventsEvent_MessageCreated) isWatchEventsEvent_Event() {}
+
+func (*WatchEventsEvent_Error) isWatchEventsEvent_Event() {}
+
+func (*WatchEventsEvent_Done) isWatchEventsEvent_Event() {}
+
+func (*WatchEventsEvent_TurnStarted) isWatchEventsEvent_Event() {}
+
+type TextDelta struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextDelta) Reset() {
+	*x = TextDelta{}
 	mi := &file_conversation_conversation_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ChatError) String() string {
+func (x *TextDelta) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ChatError) ProtoMessage() {}
+func (*TextDelta) ProtoMessage() {}
 
-func (x *ChatError) ProtoReflect() protoreflect.Message {
+func (x *TextDelta) ProtoReflect() protoreflect.Message {
 	mi := &file_conversation_conversation_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -987,42 +995,41 @@ func (x *ChatError) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ChatError.ProtoReflect.Descriptor instead.
-func (*ChatError) Descriptor() ([]byte, []int) {
+// Deprecated: Use TextDelta.ProtoReflect.Descriptor instead.
+func (*TextDelta) Descriptor() ([]byte, []int) {
 	return file_conversation_conversation_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *ChatError) GetMessage() string {
+func (x *TextDelta) GetContent() string {
 	if x != nil {
-		return x.Message
+		return x.Content
 	}
 	return ""
 }
 
-type ToolExecution struct {
+type ToolResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`     // tool name (e.g., "bash", "fetch_url")
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"` // "executing", "completed", "error"
-	Result        string                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"` // tool output (when completed)
-	Input         string                 `protobuf:"bytes,4,opt,name=input,proto3" json:"input,omitempty"`   // tool input/arguments as JSON
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Input         string                 `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
+	Result        string                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ToolExecution) Reset() {
-	*x = ToolExecution{}
+func (x *ToolResult) Reset() {
+	*x = ToolResult{}
 	mi := &file_conversation_conversation_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ToolExecution) String() string {
+func (x *ToolResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ToolExecution) ProtoMessage() {}
+func (*ToolResult) ProtoMessage() {}
 
-func (x *ToolExecution) ProtoReflect() protoreflect.Message {
+func (x *ToolResult) ProtoReflect() protoreflect.Message {
 	mi := &file_conversation_conversation_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1034,37 +1041,198 @@ func (x *ToolExecution) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ToolExecution.ProtoReflect.Descriptor instead.
-func (*ToolExecution) Descriptor() ([]byte, []int) {
+// Deprecated: Use ToolResult.ProtoReflect.Descriptor instead.
+func (*ToolResult) Descriptor() ([]byte, []int) {
 	return file_conversation_conversation_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *ToolExecution) GetName() string {
+func (x *ToolResult) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *ToolExecution) GetStatus() string {
+func (x *ToolResult) GetInput() string {
 	if x != nil {
-		return x.Status
+		return x.Input
 	}
 	return ""
 }
 
-func (x *ToolExecution) GetResult() string {
+func (x *ToolResult) GetResult() string {
 	if x != nil {
 		return x.Result
 	}
 	return ""
 }
 
-func (x *ToolExecution) GetInput() string {
+type MessageCreated struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *Message               `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessageCreated) Reset() {
+	*x = MessageCreated{}
+	mi := &file_conversation_conversation_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageCreated) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageCreated) ProtoMessage() {}
+
+func (x *MessageCreated) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[18]
 	if x != nil {
-		return x.Input
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageCreated.ProtoReflect.Descriptor instead.
+func (*MessageCreated) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *MessageCreated) GetMessage() *Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type WatchError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchError) Reset() {
+	*x = WatchError{}
+	mi := &file_conversation_conversation_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchError) ProtoMessage() {}
+
+func (x *WatchError) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchError.ProtoReflect.Descriptor instead.
+func (*WatchError) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *WatchError) GetMessage() string {
+	if x != nil {
+		return x.Message
 	}
 	return ""
+}
+
+type TurnDone struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TurnDone) Reset() {
+	*x = TurnDone{}
+	mi := &file_conversation_conversation_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TurnDone) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TurnDone) ProtoMessage() {}
+
+func (x *TurnDone) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TurnDone.ProtoReflect.Descriptor instead.
+func (*TurnDone) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *TurnDone) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+type TurnStarted struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TurnStarted) Reset() {
+	*x = TurnStarted{}
+	mi := &file_conversation_conversation_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TurnStarted) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TurnStarted) ProtoMessage() {}
+
+func (x *TurnStarted) ProtoReflect() protoreflect.Message {
+	mi := &file_conversation_conversation_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TurnStarted.ProtoReflect.Descriptor instead.
+func (*TurnStarted) Descriptor() ([]byte, []int) {
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{21}
 }
 
 type Empty struct {
@@ -1075,7 +1243,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_conversation_conversation_proto_msgTypes[18]
+	mi := &file_conversation_conversation_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1087,7 +1255,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_conversation_conversation_proto_msgTypes[18]
+	mi := &file_conversation_conversation_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1100,7 +1268,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_conversation_conversation_proto_rawDescGZIP(), []int{18}
+	return file_conversation_conversation_proto_rawDescGZIP(), []int{22}
 }
 
 var File_conversation_conversation_proto protoreflect.FileDescriptor
@@ -1150,36 +1318,45 @@ const file_conversation_conversation_proto_rawDesc = "" +
 	"\bmessages\x18\x01 \x03(\v2\x1c.blippy.conversation.MessageR\bmessages\"P\n" +
 	"\vChatRequest\x12'\n" +
 	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\x86\x02\n" +
-	"\tChatEvent\x126\n" +
-	"\x05delta\x18\x01 \x01(\v2\x1e.blippy.conversation.ChatDeltaH\x00R\x05delta\x123\n" +
-	"\x04done\x18\x02 \x01(\v2\x1d.blippy.conversation.ChatDoneH\x00R\x04done\x126\n" +
-	"\x05error\x18\x03 \x01(\v2\x1e.blippy.conversation.ChatErrorH\x00R\x05error\x12K\n" +
-	"\x0etool_execution\x18\x04 \x01(\v2\".blippy.conversation.ToolExecutionH\x00R\rtoolExecutionB\a\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"6\n" +
+	"\fChatResponse\x12&\n" +
+	"\x0fuser_message_id\x18\x01 \x01(\tR\ruserMessageId\"=\n" +
+	"\x12WatchEventsRequest\x12'\n" +
+	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\"\xa5\x03\n" +
+	"\x10WatchEventsEvent\x12?\n" +
+	"\n" +
+	"text_delta\x18\x01 \x01(\v2\x1e.blippy.conversation.TextDeltaH\x00R\ttextDelta\x12B\n" +
+	"\vtool_result\x18\x02 \x01(\v2\x1f.blippy.conversation.ToolResultH\x00R\n" +
+	"toolResult\x12N\n" +
+	"\x0fmessage_created\x18\x03 \x01(\v2#.blippy.conversation.MessageCreatedH\x00R\x0emessageCreated\x127\n" +
+	"\x05error\x18\x04 \x01(\v2\x1f.blippy.conversation.WatchErrorH\x00R\x05error\x123\n" +
+	"\x04done\x18\x05 \x01(\v2\x1d.blippy.conversation.TurnDoneH\x00R\x04done\x12E\n" +
+	"\fturn_started\x18\x06 \x01(\v2 .blippy.conversation.TurnStartedH\x00R\vturnStartedB\a\n" +
 	"\x05event\"%\n" +
-	"\tChatDelta\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent\"\x9b\x01\n" +
-	"\bChatDone\x12&\n" +
-	"\x0fuser_message_id\x18\x01 \x01(\tR\ruserMessageId\x120\n" +
-	"\x14assistant_message_id\x18\x02 \x01(\tR\x12assistantMessageId\x12\x1f\n" +
-	"\vresponse_id\x18\x03 \x01(\tR\n" +
-	"responseId\x12\x14\n" +
-	"\x05title\x18\x04 \x01(\tR\x05title\"%\n" +
-	"\tChatError\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"i\n" +
-	"\rToolExecution\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\x12\x16\n" +
-	"\x06result\x18\x03 \x01(\tR\x06result\x12\x14\n" +
-	"\x05input\x18\x04 \x01(\tR\x05input\"\a\n" +
-	"\x05Empty2\xe5\x04\n" +
+	"\tTextDelta\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\"N\n" +
+	"\n" +
+	"ToolResult\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05input\x18\x02 \x01(\tR\x05input\x12\x16\n" +
+	"\x06result\x18\x03 \x01(\tR\x06result\"H\n" +
+	"\x0eMessageCreated\x126\n" +
+	"\amessage\x18\x01 \x01(\v2\x1c.blippy.conversation.MessageR\amessage\"&\n" +
+	"\n" +
+	"WatchError\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\" \n" +
+	"\bTurnDone\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\"\r\n" +
+	"\vTurnStarted\"\a\n" +
+	"\x05Empty2\xc7\x05\n" +
 	"\x13ConversationService\x12g\n" +
 	"\x12CreateConversation\x12..blippy.conversation.CreateConversationRequest\x1a!.blippy.conversation.Conversation\x12a\n" +
 	"\x0fGetConversation\x12+.blippy.conversation.GetConversationRequest\x1a!.blippy.conversation.Conversation\x12r\n" +
 	"\x11ListConversations\x12-.blippy.conversation.ListConversationsRequest\x1a..blippy.conversation.ListConversationsResponse\x12`\n" +
 	"\x12DeleteConversation\x12..blippy.conversation.DeleteConversationRequest\x1a\x1a.blippy.conversation.Empty\x12`\n" +
-	"\vGetMessages\x12'.blippy.conversation.GetMessagesRequest\x1a(.blippy.conversation.GetMessagesResponse\x12J\n" +
-	"\x04Chat\x12 .blippy.conversation.ChatRequest\x1a\x1e.blippy.conversation.ChatEvent0\x01B2Z0github.com/dstotijn/blippy/internal/conversationb\x06proto3"
+	"\vGetMessages\x12'.blippy.conversation.GetMessagesRequest\x1a(.blippy.conversation.GetMessagesResponse\x12K\n" +
+	"\x04Chat\x12 .blippy.conversation.ChatRequest\x1a!.blippy.conversation.ChatResponse\x12_\n" +
+	"\vWatchEvents\x12'.blippy.conversation.WatchEventsRequest\x1a%.blippy.conversation.WatchEventsEvent0\x01B2Z0github.com/dstotijn/blippy/internal/conversationb\x06proto3"
 
 var (
 	file_conversation_conversation_proto_rawDescOnce sync.Once
@@ -1193,7 +1370,7 @@ func file_conversation_conversation_proto_rawDescGZIP() []byte {
 	return file_conversation_conversation_proto_rawDescData
 }
 
-var file_conversation_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_conversation_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_conversation_conversation_proto_goTypes = []any{
 	(*Conversation)(nil),              // 0: blippy.conversation.Conversation
 	(*Message)(nil),                   // 1: blippy.conversation.Message
@@ -1208,44 +1385,53 @@ var file_conversation_conversation_proto_goTypes = []any{
 	(*GetMessagesRequest)(nil),        // 10: blippy.conversation.GetMessagesRequest
 	(*GetMessagesResponse)(nil),       // 11: blippy.conversation.GetMessagesResponse
 	(*ChatRequest)(nil),               // 12: blippy.conversation.ChatRequest
-	(*ChatEvent)(nil),                 // 13: blippy.conversation.ChatEvent
-	(*ChatDelta)(nil),                 // 14: blippy.conversation.ChatDelta
-	(*ChatDone)(nil),                  // 15: blippy.conversation.ChatDone
-	(*ChatError)(nil),                 // 16: blippy.conversation.ChatError
-	(*ToolExecution)(nil),             // 17: blippy.conversation.ToolExecution
-	(*Empty)(nil),                     // 18: blippy.conversation.Empty
-	(*timestamppb.Timestamp)(nil),     // 19: google.protobuf.Timestamp
+	(*ChatResponse)(nil),              // 13: blippy.conversation.ChatResponse
+	(*WatchEventsRequest)(nil),        // 14: blippy.conversation.WatchEventsRequest
+	(*WatchEventsEvent)(nil),          // 15: blippy.conversation.WatchEventsEvent
+	(*TextDelta)(nil),                 // 16: blippy.conversation.TextDelta
+	(*ToolResult)(nil),                // 17: blippy.conversation.ToolResult
+	(*MessageCreated)(nil),            // 18: blippy.conversation.MessageCreated
+	(*WatchError)(nil),                // 19: blippy.conversation.WatchError
+	(*TurnDone)(nil),                  // 20: blippy.conversation.TurnDone
+	(*TurnStarted)(nil),               // 21: blippy.conversation.TurnStarted
+	(*Empty)(nil),                     // 22: blippy.conversation.Empty
+	(*timestamppb.Timestamp)(nil),     // 23: google.protobuf.Timestamp
 }
 var file_conversation_conversation_proto_depIdxs = []int32{
-	19, // 0: blippy.conversation.Conversation.created_at:type_name -> google.protobuf.Timestamp
-	19, // 1: blippy.conversation.Conversation.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 2: blippy.conversation.Message.created_at:type_name -> google.protobuf.Timestamp
+	23, // 0: blippy.conversation.Conversation.created_at:type_name -> google.protobuf.Timestamp
+	23, // 1: blippy.conversation.Conversation.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 2: blippy.conversation.Message.created_at:type_name -> google.protobuf.Timestamp
 	2,  // 3: blippy.conversation.Message.items:type_name -> blippy.conversation.MessageItem
 	3,  // 4: blippy.conversation.MessageItem.text:type_name -> blippy.conversation.TextItem
 	4,  // 5: blippy.conversation.MessageItem.tool_execution:type_name -> blippy.conversation.ToolExecutionItem
 	0,  // 6: blippy.conversation.ListConversationsResponse.conversations:type_name -> blippy.conversation.Conversation
 	1,  // 7: blippy.conversation.GetMessagesResponse.messages:type_name -> blippy.conversation.Message
-	14, // 8: blippy.conversation.ChatEvent.delta:type_name -> blippy.conversation.ChatDelta
-	15, // 9: blippy.conversation.ChatEvent.done:type_name -> blippy.conversation.ChatDone
-	16, // 10: blippy.conversation.ChatEvent.error:type_name -> blippy.conversation.ChatError
-	17, // 11: blippy.conversation.ChatEvent.tool_execution:type_name -> blippy.conversation.ToolExecution
-	5,  // 12: blippy.conversation.ConversationService.CreateConversation:input_type -> blippy.conversation.CreateConversationRequest
-	6,  // 13: blippy.conversation.ConversationService.GetConversation:input_type -> blippy.conversation.GetConversationRequest
-	7,  // 14: blippy.conversation.ConversationService.ListConversations:input_type -> blippy.conversation.ListConversationsRequest
-	9,  // 15: blippy.conversation.ConversationService.DeleteConversation:input_type -> blippy.conversation.DeleteConversationRequest
-	10, // 16: blippy.conversation.ConversationService.GetMessages:input_type -> blippy.conversation.GetMessagesRequest
-	12, // 17: blippy.conversation.ConversationService.Chat:input_type -> blippy.conversation.ChatRequest
-	0,  // 18: blippy.conversation.ConversationService.CreateConversation:output_type -> blippy.conversation.Conversation
-	0,  // 19: blippy.conversation.ConversationService.GetConversation:output_type -> blippy.conversation.Conversation
-	8,  // 20: blippy.conversation.ConversationService.ListConversations:output_type -> blippy.conversation.ListConversationsResponse
-	18, // 21: blippy.conversation.ConversationService.DeleteConversation:output_type -> blippy.conversation.Empty
-	11, // 22: blippy.conversation.ConversationService.GetMessages:output_type -> blippy.conversation.GetMessagesResponse
-	13, // 23: blippy.conversation.ConversationService.Chat:output_type -> blippy.conversation.ChatEvent
-	18, // [18:24] is the sub-list for method output_type
-	12, // [12:18] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	16, // 8: blippy.conversation.WatchEventsEvent.text_delta:type_name -> blippy.conversation.TextDelta
+	17, // 9: blippy.conversation.WatchEventsEvent.tool_result:type_name -> blippy.conversation.ToolResult
+	18, // 10: blippy.conversation.WatchEventsEvent.message_created:type_name -> blippy.conversation.MessageCreated
+	19, // 11: blippy.conversation.WatchEventsEvent.error:type_name -> blippy.conversation.WatchError
+	20, // 12: blippy.conversation.WatchEventsEvent.done:type_name -> blippy.conversation.TurnDone
+	21, // 13: blippy.conversation.WatchEventsEvent.turn_started:type_name -> blippy.conversation.TurnStarted
+	1,  // 14: blippy.conversation.MessageCreated.message:type_name -> blippy.conversation.Message
+	5,  // 15: blippy.conversation.ConversationService.CreateConversation:input_type -> blippy.conversation.CreateConversationRequest
+	6,  // 16: blippy.conversation.ConversationService.GetConversation:input_type -> blippy.conversation.GetConversationRequest
+	7,  // 17: blippy.conversation.ConversationService.ListConversations:input_type -> blippy.conversation.ListConversationsRequest
+	9,  // 18: blippy.conversation.ConversationService.DeleteConversation:input_type -> blippy.conversation.DeleteConversationRequest
+	10, // 19: blippy.conversation.ConversationService.GetMessages:input_type -> blippy.conversation.GetMessagesRequest
+	12, // 20: blippy.conversation.ConversationService.Chat:input_type -> blippy.conversation.ChatRequest
+	14, // 21: blippy.conversation.ConversationService.WatchEvents:input_type -> blippy.conversation.WatchEventsRequest
+	0,  // 22: blippy.conversation.ConversationService.CreateConversation:output_type -> blippy.conversation.Conversation
+	0,  // 23: blippy.conversation.ConversationService.GetConversation:output_type -> blippy.conversation.Conversation
+	8,  // 24: blippy.conversation.ConversationService.ListConversations:output_type -> blippy.conversation.ListConversationsResponse
+	22, // 25: blippy.conversation.ConversationService.DeleteConversation:output_type -> blippy.conversation.Empty
+	11, // 26: blippy.conversation.ConversationService.GetMessages:output_type -> blippy.conversation.GetMessagesResponse
+	13, // 27: blippy.conversation.ConversationService.Chat:output_type -> blippy.conversation.ChatResponse
+	15, // 28: blippy.conversation.ConversationService.WatchEvents:output_type -> blippy.conversation.WatchEventsEvent
+	22, // [22:29] is the sub-list for method output_type
+	15, // [15:22] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_conversation_conversation_proto_init() }
@@ -1257,11 +1443,13 @@ func file_conversation_conversation_proto_init() {
 		(*MessageItem_Text)(nil),
 		(*MessageItem_ToolExecution)(nil),
 	}
-	file_conversation_conversation_proto_msgTypes[13].OneofWrappers = []any{
-		(*ChatEvent_Delta)(nil),
-		(*ChatEvent_Done)(nil),
-		(*ChatEvent_Error)(nil),
-		(*ChatEvent_ToolExecution)(nil),
+	file_conversation_conversation_proto_msgTypes[15].OneofWrappers = []any{
+		(*WatchEventsEvent_TextDelta)(nil),
+		(*WatchEventsEvent_ToolResult)(nil),
+		(*WatchEventsEvent_MessageCreated)(nil),
+		(*WatchEventsEvent_Error)(nil),
+		(*WatchEventsEvent_Done)(nil),
+		(*WatchEventsEvent_TurnStarted)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1269,7 +1457,7 @@ func file_conversation_conversation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conversation_conversation_proto_rawDesc), len(file_conversation_conversation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

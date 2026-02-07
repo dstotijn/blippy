@@ -29,11 +29,22 @@ func NewExecutor(registry *Registry, notificationLister NotificationChannelListe
 	}
 }
 
-// ProcessOutput checks response output for function calls and executes them
-// Returns inputs to append to conversation for continuation, or nil if no tools called
-// Since OpenRouter doesn't support previous_response_id, we need to send both
-// the function_call items (echoing what the model said) and function_call_output items
-func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.OutputItem) ([]openrouter.Input, error) {
+// ToolResult represents a single completed tool execution.
+type ToolResult struct {
+	CallID    string
+	ID        string // function call ID
+	Name      string // API-encoded name
+	Arguments string
+	Output    string
+}
+
+// ProcessOutput checks response output for function calls and executes them concurrently.
+// Returns inputs to append to conversation for continuation, or nil if no tools called.
+// The onResult callback is invoked for each tool as it completes, enabling callers to
+// stream results to clients incrementally. Since OpenRouter doesn't support
+// previous_response_id, we send both the function_call items (echoing what the model
+// said) and function_call_output items.
+func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.OutputItem, onResult func(ToolResult)) ([]openrouter.Input, error) {
 	var toolCalls []openrouter.OutputItem
 	for _, item := range output {
 		if item.Type == "function_call" {
@@ -58,26 +69,49 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 		})
 	}
 
-	// Then, add the outputs for each function call
-	for _, call := range toolCalls {
-		// Decode API-safe name back to internal name (e.g. "notify__foo" -> "notify:foo")
-		internalName := DecodeToolName(call.Name)
-		result, err := e.executeTool(ctx, internalName, json.RawMessage(call.Arguments))
-		if err != nil {
-			result = fmt.Sprintf("Error: %s", err.Error())
-		}
-		// API requires output to be non-empty
-		if result == "" {
-			result = "(no output)"
-		}
-
-		inputs = append(inputs, openrouter.Input{
-			Type:   "function_call_output",
-			CallID: call.CallID,
-			Output: result,
-		})
+	// Execute tools concurrently
+	type toolOutput struct {
+		index  int
+		call   openrouter.OutputItem
+		output string
 	}
 
+	ch := make(chan toolOutput, len(toolCalls))
+	for i, call := range toolCalls {
+		go func(i int, call openrouter.OutputItem) {
+			internalName := DecodeToolName(call.Name)
+			result, err := e.executeTool(ctx, internalName, json.RawMessage(call.Arguments))
+			if err != nil {
+				result = fmt.Sprintf("Error: %s", err.Error())
+			}
+			if result == "" {
+				result = "(no output)"
+			}
+			ch <- toolOutput{index: i, call: call, output: result}
+		}(i, call)
+	}
+
+	// Collect results in completion order, notifying caller as each completes
+	outputInputs := make([]openrouter.Input, len(toolCalls))
+	for range toolCalls {
+		r := <-ch
+		outputInputs[r.index] = openrouter.Input{
+			Type:   "function_call_output",
+			CallID: r.call.CallID,
+			Output: r.output,
+		}
+		if onResult != nil {
+			onResult(ToolResult{
+				CallID:    r.call.CallID,
+				ID:        r.call.ID,
+				Name:      r.call.Name,
+				Arguments: r.call.Arguments,
+				Output:    r.output,
+			})
+		}
+	}
+
+	inputs = append(inputs, outputInputs...)
 	return inputs, nil
 }
 

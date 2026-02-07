@@ -28,3 +28,8 @@ export const deleteConversation = ConversationService.method.deleteConversation;
  * @generated from rpc blippy.conversation.ConversationService.GetMessages
  */
 export const getMessages = ConversationService.method.getMessages;
+
+/**
+ * @generated from rpc blippy.conversation.ConversationService.Chat
+ */
+export const chat = ConversationService.method.chat;

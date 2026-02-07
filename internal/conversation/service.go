@@ -7,14 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/dstotijn/blippy/internal/agentloop"
 	"github.com/dstotijn/blippy/internal/openrouter"
+	"github.com/dstotijn/blippy/internal/pubsub"
 	"github.com/dstotijn/blippy/internal/store"
 	"github.com/dstotijn/blippy/internal/tool"
 )
@@ -25,15 +26,26 @@ type Service struct {
 	orClient     *openrouter.Client
 	defaultModel string
 	toolExecutor *tool.Executor
+	broker       *pubsub.Broker
+	loop         *agentloop.Loop
 }
 
-func NewService(db *sql.DB, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor) *Service {
+func NewService(db *sql.DB, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor, broker *pubsub.Broker) *Service {
+	queries := store.New(db)
 	return &Service{
-		queries:      store.New(db),
+		queries:      queries,
 		db:           db,
 		orClient:     orClient,
 		defaultModel: defaultModel,
 		toolExecutor: toolExecutor,
+		broker:       broker,
+		loop: &agentloop.Loop{
+			Queries:      queries,
+			ORClient:     orClient,
+			ToolExecutor: toolExecutor,
+			Broker:       broker,
+			DefaultModel: defaultModel,
+		},
 	}
 }
 
@@ -110,20 +122,27 @@ func (s *Service) GetMessages(ctx context.Context, req *connect.Request[GetMessa
 	return connect.NewResponse(&GetMessagesResponse{Messages: protoMsgs}), nil
 }
 
-func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], stream *connect.ServerStream[ChatEvent]) error {
+// Chat saves the user message, starts background LLM processing, and returns immediately.
+func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest]) (*connect.Response[ChatResponse], error) {
 	// Get conversation
 	conv, err := s.queries.GetConversation(ctx, req.Msg.ConversationId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return connect.NewError(connect.CodeNotFound, errors.New("conversation not found"))
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("conversation not found"))
 		}
-		return connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	// Check if conversation is already busy
+	if !s.broker.SetBusy(conv.ID) {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("conversation is already processing"))
 	}
 
 	// Get agent for system prompt and tools
 	agent, err := s.queries.GetAgent(ctx, conv.AgentID)
 	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
+		s.broker.ClearBusy(conv.ID)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// Resolve model: agent.Model if set, else default
@@ -135,23 +154,36 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 	// Get existing messages for conversation history
 	existingMsgs, err := s.queries.GetMessagesByConversation(ctx, conv.ID)
 	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
+		s.broker.ClearBusy(conv.ID)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// Save user message
 	now := time.Now().UTC()
 	userMsgID := uuid.NewString()
-	userItems, _ := json.Marshal([]storedItem{{Type: "text", Text: req.Msg.Content}})
+	userItems, _ := json.Marshal([]agentloop.StoredItem{{Type: "text", Text: req.Msg.Content}})
+	userItemsStr := string(userItems)
+	createdAt := now.Format(time.RFC3339)
 	_, err = s.queries.CreateMessage(ctx, store.CreateMessageParams{
 		ID:             userMsgID,
 		ConversationID: conv.ID,
 		Role:           "user",
-		Items:          string(userItems),
-		CreatedAt:      now.Format(time.RFC3339),
+		Items:          userItemsStr,
+		CreatedAt:      createdAt,
 	})
 	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
+		s.broker.ClearBusy(conv.ID)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+
+	// Publish user message and turn started events
+	s.broker.Publish(conv.ID, agentloop.MessageDone{
+		MessageID: userMsgID,
+		Role:      "user",
+		ItemsJSON: userItemsStr,
+		CreatedAt: createdAt,
+	})
+	s.broker.Publish(conv.ID, agentloop.TurnStarted{})
 
 	// Parse enabled tools from JSON
 	var enabledTools []string
@@ -165,16 +197,16 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 		_ = json.Unmarshal([]byte(agent.EnabledNotificationChannels), &enabledNotificationChannels)
 	}
 
-	// Set conversation ID and agent ID in context for tool execution
-	ctx = tool.WithConversationID(ctx, conv.ID)
-	ctx = tool.WithAgentID(ctx, conv.AgentID)
+	// Build context for background goroutine (not tied to HTTP request)
+	bgCtx := context.Background()
+	bgCtx = tool.WithConversationID(bgCtx, conv.ID)
+	bgCtx = tool.WithAgentID(bgCtx, conv.AgentID)
 
 	// Build input array with conversation history
 	var inputs []openrouter.Input
 	for _, msg := range existingMsgs {
-		inputs = append(inputs, buildHistoryInputs(msg)...)
+		inputs = append(inputs, agentloop.BuildHistoryInputs(msg)...)
 	}
-	// Add the new user message
 	inputs = append(inputs, openrouter.Input{
 		Type: "message",
 		Role: "user",
@@ -184,12 +216,13 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 	})
 
 	// Get tools for agent
-	tools, err := s.toolExecutor.GetToolsForAgent(ctx, enabledTools, enabledNotificationChannels)
+	tools, err := s.toolExecutor.GetToolsForAgent(bgCtx, enabledTools, enabledNotificationChannels)
 	if err != nil {
-		return fmt.Errorf("get tools: %w", err)
+		s.broker.ClearBusy(conv.ID)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get tools: %w", err))
 	}
 
-	// Build initial OpenRouter request
+	// Build OpenRouter request
 	orReq := &openrouter.ResponseRequest{
 		Model:        model,
 		Input:        inputs,
@@ -197,318 +230,126 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest], s
 		Tools:        tools,
 	}
 
-	return s.streamWithToolExecution(ctx, conv, orReq, userMsgID, req.Msg.Content, stream, nil)
+	// Start background processing
+	go func() {
+		if _, err := s.loop.RunTurn(bgCtx, agentloop.TurnOpts{
+			Conv:        conv,
+			Request:     orReq,
+			UserContent: req.Msg.Content,
+		}); err != nil {
+			log.Printf("Background agent turn error (conv %s): %v", conv.ID, err)
+		}
+	}()
+
+	return connect.NewResponse(&ChatResponse{UserMessageId: userMsgID}), nil
 }
 
-// storedItem represents an item in the message items JSON array.
-type storedItem struct {
-	Type   string `json:"type"`              // "text" or "tool_execution"
-	Text   string `json:"text,omitempty"`    // for type="text"
-	Name   string `json:"name,omitempty"`    // for type="tool_execution"
-	Input  string `json:"input,omitempty"`   // for type="tool_execution"
-	Result string `json:"result,omitempty"`  // for type="tool_execution"
-	ID     string `json:"id,omitempty"`      // function call ID
-	CallID string `json:"call_id,omitempty"` // for history reconstruction
-}
+// WatchEvents streams conversation events to the client via pub/sub.
+func (s *Service) WatchEvents(ctx context.Context, req *connect.Request[WatchEventsRequest], stream *connect.ServerStream[WatchEventsEvent]) error {
+	convID := req.Msg.ConversationId
 
-func (s *Service) streamWithToolExecution(
-	ctx context.Context,
-	conv store.Conversation,
-	orReq *openrouter.ResponseRequest,
-	userMsgID string,
-	userMsgContent string,
-	stream *connect.ServerStream[ChatEvent],
-	priorItems []storedItem,
-) error {
-	events, errs := s.orClient.CreateResponseStream(ctx, orReq)
+	// Validate conversation exists
+	if _, err := s.queries.GetConversation(ctx, convID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return connect.NewError(connect.CodeNotFound, errors.New("conversation not found"))
+		}
+		return connect.NewError(connect.CodeInternal, err)
+	}
 
-	var currentText string
-	var responseID string
+	sub := s.broker.Subscribe(convID)
+	defer s.broker.Unsubscribe(sub)
+
+	// If the conversation is currently busy, send initial TurnStarted event
+	if s.broker.IsBusy(convID) {
+		if err := stream.Send(&WatchEventsEvent{
+			Event: &WatchEventsEvent_TurnStarted{TurnStarted: &TurnStarted{}},
+		}); err != nil {
+			return err
+		}
+	}
 
 	for {
 		select {
-		case event, ok := <-events:
+		case event, ok := <-sub.C:
 			if !ok {
-				// Stream ended — finalize current text and store
-				var items []storedItem
-				items = append(items, priorItems...)
-				if currentText != "" {
-					items = append(items, storedItem{Type: "text", Text: currentText})
-				}
-				return s.finishChat(ctx, conv, userMsgID, userMsgContent, items, responseID, stream)
+				return nil
 			}
 
-			// Only stream text deltas, skip function call argument deltas
-			if event.Type == "response.output_text.delta" && event.Delta != "" {
-				currentText += event.Delta
-				if err := stream.Send(&ChatEvent{
-					Event: &ChatEvent_Delta{
-						Delta: &ChatDelta{Content: event.Delta},
-					},
-				}); err != nil {
-					return err
-				}
-			}
-
-			// Handle response completion (may contain function calls)
-			if event.Response != nil {
-				responseID = event.Response.ID
-
-				// Check for function calls in output
-				toolInputs, err := s.toolExecutor.ProcessOutput(ctx, event.Response.Output)
-				if err != nil {
-					return connect.NewError(connect.CodeInternal, err)
-				}
-
-				if len(toolInputs) > 0 {
-					// Finalize current text as an item
-					var items []storedItem
-					items = append(items, priorItems...)
-					if currentText != "" {
-						items = append(items, storedItem{Type: "text", Text: currentText})
-					}
-
-					// Send tool execution events to client and add to items
-					for _, input := range toolInputs {
-						if input.Type != "function_call_output" {
-							continue
-						}
-
-						// Find the tool name, arguments, and ID from the original output
-						var toolName, toolArgs, toolID string
-						for _, out := range event.Response.Output {
-							if out.Type == "function_call" && out.CallID == input.CallID {
-								toolID = out.ID
-								toolName = tool.DecodeToolName(out.Name)
-								toolArgs = out.Arguments
-								break
-							}
-						}
-
-						items = append(items, storedItem{
-							Type:   "tool_execution",
-							ID:     toolID,
-							CallID: input.CallID,
-							Name:   toolName,
-							Input:  toolArgs,
-							Result: input.Output,
-						})
-
-						if err := stream.Send(&ChatEvent{
-							Event: &ChatEvent_ToolExecution{
-								ToolExecution: &ToolExecution{
-									Name:   toolName,
-									Status: "completed",
-									Result: input.Output,
-									Input:  toolArgs,
-								},
-							},
-						}); err != nil {
-							return err
-						}
-					}
-
-					// Continue conversation with tool results appended to history
-					orReq.Input = append(orReq.Input, toolInputs...)
-
-					// Recursively continue streaming with accumulated items
-					return s.streamWithToolExecution(ctx, conv, orReq, userMsgID, userMsgContent, stream, items)
-				}
-			}
-
-		case err := <-errs:
+			protoEvent, err := toProtoWatchEvent(event)
 			if err != nil {
-				log.Printf("Stream error: %v", err)
-				_ = stream.Send(&ChatEvent{
-					Event: &ChatEvent_Error{
-						Error: &ChatError{Message: err.Error()},
-					},
-				})
-				return connect.NewError(connect.CodeInternal, err)
+				return err
+			}
+			if err := stream.Send(protoEvent); err != nil {
+				return err
 			}
 
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		}
 	}
 }
 
-func (s *Service) finishChat(
-	ctx context.Context,
-	conv store.Conversation,
-	userMsgID string,
-	userMsgContent string,
-	items []storedItem,
-	responseID string,
-	stream *connect.ServerStream[ChatEvent],
-) error {
-	if len(items) == 0 {
-		return nil
-	}
-
-	// Serialize items to JSON
-	itemsJSON, err := json.Marshal(items)
-	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
-	}
-
-	msgID := uuid.NewString()
-	_, err = s.queries.CreateMessage(ctx, store.CreateMessageParams{
-		ID:             msgID,
-		ConversationID: conv.ID,
-		Role:           "assistant",
-		Items:          string(itemsJSON),
-		CreatedAt:      time.Now().UTC().Format(time.RFC3339),
-	})
-	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
-	}
-
-	// Generate title if this is the first turn
-	var title string
-	if conv.Title == "" {
-		// Derive plain text for title generation
-		plainText := plainTextFromItems(items)
-		generated, err := s.orClient.GenerateTitle(ctx, s.defaultModel, userMsgContent, plainText)
-		if err != nil {
-			log.Printf("Failed to generate title: %v", err)
-		} else {
-			title = generated
-		}
-	}
-
-	now := time.Now().UTC().Format(time.RFC3339)
-	if responseID != "" || title != "" {
-		newTitle := conv.Title
-		if title != "" {
-			newTitle = title
-		}
-		_, err = s.queries.UpdateConversation(ctx, store.UpdateConversationParams{
-			ID:                 conv.ID,
-			Title:              newTitle,
-			PreviousResponseID: responseID,
-			UpdatedAt:          now,
-		})
-		if err != nil {
-			return connect.NewError(connect.CodeInternal, err)
-		}
-	}
-
-	return stream.Send(&ChatEvent{
-		Event: &ChatEvent_Done{
-			Done: &ChatDone{
-				UserMessageId:      userMsgID,
-				AssistantMessageId: msgID,
-				ResponseId:         responseID,
-				Title:              title,
+func toProtoWatchEvent(event any) (*WatchEventsEvent, error) {
+	switch e := event.(type) {
+	case agentloop.TextDelta:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_TextDelta{
+				TextDelta: &TextDelta{Content: e.Content},
 			},
-		},
-	})
-}
-
-// plainTextFromItems concatenates all text items into a single string.
-func plainTextFromItems(items []storedItem) string {
-	var parts []string
-	for _, item := range items {
-		if item.Type == "text" && item.Text != "" {
-			parts = append(parts, item.Text)
-		}
-	}
-	return strings.Join(parts, "\n\n")
-}
-
-// buildHistoryInputs converts a stored message into OpenRouter input items.
-func buildHistoryInputs(msg store.Message) []openrouter.Input {
-	var items []storedItem
-	if msg.Items != "" && msg.Items != "[]" {
-		_ = json.Unmarshal([]byte(msg.Items), &items)
-	}
-
-	if msg.Role == "user" {
-		text := plainTextFromItems(items)
-		return []openrouter.Input{{
-			Type: "message",
-			Role: "user",
-			Content: []openrouter.ContentPart{
-				{Type: "input_text", Text: text},
-			},
-		}}
-	}
-
-	if msg.Role == "assistant" {
-		var inputs []openrouter.Input
-		// Emit items in order: text segments become assistant messages,
-		// tool executions become function_call + function_call_output pairs.
-		for i, item := range items {
-			switch item.Type {
-			case "tool_execution":
-				callID := item.CallID
-				if callID == "" {
-					callID = fmt.Sprintf("call_%s_%d", msg.ID, i)
-				}
-				fcID := item.ID
-				if fcID == "" {
-					fcID = fmt.Sprintf("fc_%s_%d", msg.ID, i)
-				}
-				inputs = append(inputs, openrouter.Input{
-					Type:      "function_call",
-					ID:        fcID,
-					CallID:    callID,
-					Name:      tool.EncodeToolName(item.Name),
-					Arguments: item.Input,
-				})
-				inputs = append(inputs, openrouter.Input{
-					Type:   "function_call_output",
-					ID:     fmt.Sprintf("fc_out_%s_%d", msg.ID, i),
-					CallID: callID,
-					Output: item.Result,
-				})
-			}
-		}
-
-		// Emit a single assistant message with all text content combined
-		text := plainTextFromItems(items)
-		if text != "" {
-			inputs = append(inputs, openrouter.Input{
-				Type:   "message",
-				Role:   "assistant",
-				ID:     msg.ID,
-				Status: "completed",
-				Content: []openrouter.ContentPart{
-					{Type: "output_text", Text: text},
+		}, nil
+	case agentloop.ToolResult:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_ToolResult{
+				ToolResult: &ToolResult{
+					Name:   e.Name,
+					Input:  e.Input,
+					Result: e.Result,
 				},
-				Annotations: []any{},
-			})
+			},
+		}, nil
+	case agentloop.MessageDone:
+		// Parse items JSON to build proto message
+		var items []agentloop.StoredItem
+		if e.ItemsJSON != "" && e.ItemsJSON != "[]" {
+			_ = json.Unmarshal([]byte(e.ItemsJSON), &items)
 		}
+		createdAt, _ := time.Parse(time.RFC3339, e.CreatedAt)
+		protoItems := storedItemsToProto(items)
 
-		return inputs
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_MessageCreated{
+				MessageCreated: &MessageCreated{
+					Message: &Message{
+						Id:        e.MessageID,
+						Role:      e.Role,
+						CreatedAt: timestamppb.New(createdAt),
+						Items:     protoItems,
+					},
+				},
+			},
+		}, nil
+	case agentloop.TurnDone:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_Done{
+				Done: &TurnDone{Title: e.Title},
+			},
+		}, nil
+	case agentloop.TurnStarted:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_TurnStarted{TurnStarted: &TurnStarted{}},
+		}, nil
+	case agentloop.Error:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_Error{
+				Error: &WatchError{Message: e.Message},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unknown event type: %T", event)
 	}
-
-	return nil
 }
 
-func toProtoConversation(c store.Conversation) *Conversation {
-	createdAt, _ := time.Parse(time.RFC3339, c.CreatedAt)
-	updatedAt, _ := time.Parse(time.RFC3339, c.UpdatedAt)
-
-	return &Conversation{
-		Id:                 c.ID,
-		AgentId:            c.AgentID,
-		Title:              c.Title,
-		PreviousResponseId: c.PreviousResponseID,
-		CreatedAt:          timestamppb.New(createdAt),
-		UpdatedAt:          timestamppb.New(updatedAt),
-	}
-}
-
-func toProtoMessage(m store.Message) *Message {
-	createdAt, _ := time.Parse(time.RFC3339, m.CreatedAt)
-
-	var items []storedItem
-	if m.Items != "" && m.Items != "[]" {
-		_ = json.Unmarshal([]byte(m.Items), &items)
-	}
-
+func storedItemsToProto(items []agentloop.StoredItem) []*MessageItem {
 	protoItems := make([]*MessageItem, len(items))
 	for i, item := range items {
 		switch item.Type {
@@ -532,12 +373,36 @@ func toProtoMessage(m store.Message) *Message {
 			protoItems[i] = &MessageItem{}
 		}
 	}
+	return protoItems
+}
+
+func toProtoConversation(c store.Conversation) *Conversation {
+	createdAt, _ := time.Parse(time.RFC3339, c.CreatedAt)
+	updatedAt, _ := time.Parse(time.RFC3339, c.UpdatedAt)
+
+	return &Conversation{
+		Id:                 c.ID,
+		AgentId:            c.AgentID,
+		Title:              c.Title,
+		PreviousResponseId: c.PreviousResponseID,
+		CreatedAt:          timestamppb.New(createdAt),
+		UpdatedAt:          timestamppb.New(updatedAt),
+	}
+}
+
+func toProtoMessage(m store.Message) *Message {
+	createdAt, _ := time.Parse(time.RFC3339, m.CreatedAt)
+
+	var items []agentloop.StoredItem
+	if m.Items != "" && m.Items != "[]" {
+		_ = json.Unmarshal([]byte(m.Items), &items)
+	}
 
 	return &Message{
 		Id:             m.ID,
 		ConversationId: m.ConversationID,
 		Role:           m.Role,
 		CreatedAt:      timestamppb.New(createdAt),
-		Items:          protoItems,
+		Items:          storedItemsToProto(items),
 	}
 }
