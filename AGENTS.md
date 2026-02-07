@@ -26,9 +26,11 @@ A self-hosted AI agent platform distributed as a single static Go binary with an
 ```
 internal/
 ├── agent/          # Agent CRUD service
+├── agentloop/      # Shared LLM agentic loop (streaming, tool execution)
 ├── conversation/   # Conversation service
 ├── notification/   # Notification channels service
 ├── openrouter/     # OpenResponses client
+├── pubsub/         # In-memory pub/sub broker
 ├── runner/         # Agent runner and LLM adapter
 ├── scheduler/      # Trigger scheduling
 ├── server/         # HTTP server, ConnectRPC handlers
@@ -40,6 +42,22 @@ web/                # Frontend (React + TanStack Router + Tailwind)
 ├── handler.go      # Embeds dist/ and serves SPA
 └── dist/           # Production build output (embedded in binary)
 ```
+
+## How It Works
+
+A chat request flows: **ConnectRPC → conversation.Service → agentloop.Loop → OpenRouter**
+- `agentloop.Loop` streams LLM responses, executes tools concurrently, and publishes events to `pubsub.Broker`
+- `conversation.WatchEvents` subscribes to the broker and forwards events to the frontend via server-streaming RPC
+- `runner.Runner` uses the same `agentloop.Loop` for autonomous/scheduled runs (webhooks, triggers)
+- `tool.Executor` holds a `tool.Registry` of available tools; each agent has an `enabled_tools` allowlist
+- `tool.Executor.ProcessOutput` executes tool calls concurrently with an `onResult` callback for streaming
+
+## Key Relationships
+
+- `conversation.Service` and `runner.Runner` both use `agentloop.Loop` — the shared LLM loop
+- `pubsub.Broker` is generic infrastructure; event types live in `agentloop`
+- Proto definitions live in `proto/`; `mise run gen` outputs to `internal/conversation/` and `web/src/lib/rpc/`
+- `store/` uses sqlc — queries in `store/queries.sql`, schema in `store/migrations/`
 
 ## Development Commands
 
