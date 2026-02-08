@@ -27,9 +27,13 @@ type Loop struct {
 
 // TurnOpts configures a single agent turn.
 type TurnOpts struct {
-	Conv        store.Conversation
-	Request     *openrouter.ResponseRequest
-	UserContent string // for title generation
+	Conv              store.Conversation
+	Agent             store.Agent
+	UserContent       string
+	History           []store.Message // nil = no history
+	ModelOverride     string          // optional: overrides agent model
+	ExtraInstructions string          // prepended to system prompt
+	Depth             int             // for recursion tracking
 }
 
 // TextDelta represents a chunk of streamed text from the LLM.
@@ -76,12 +80,109 @@ type StoredItem struct {
 	CallID string `json:"call_id,omitempty"` // for history reconstruction
 }
 
+// SaveUserMessage persists a user message and publishes a MessageDone event.
+// Returns the message ID. Call this before starting the turn goroutine so the
+// caller can return the ID to the client synchronously.
+func (l *Loop) SaveUserMessage(ctx context.Context, convID, content string) (string, error) {
+	msgID := uuid.NewString()
+	items, _ := json.Marshal([]StoredItem{{Type: "text", Text: content}})
+	itemsStr := string(items)
+	createdAt := time.Now().UTC().Format(time.RFC3339)
+
+	_, err := l.Queries.CreateMessage(ctx, store.CreateMessageParams{
+		ID:             msgID,
+		ConversationID: convID,
+		Role:           "user",
+		Items:          itemsStr,
+		CreatedAt:      createdAt,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create user message: %w", err)
+	}
+
+	l.Broker.Publish(convID, MessageDone{
+		MessageID: msgID,
+		Role:      "user",
+		ItemsJSON: itemsStr,
+		CreatedAt: createdAt,
+	})
+
+	return msgID, nil
+}
+
+// prepareTurn builds the OpenRouter request from TurnOpts.
+func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.ResponseRequest, error) {
+	// Parse enabled tools from agent JSON
+	var enabledTools []string
+	if opts.Agent.EnabledTools != "" {
+		_ = json.Unmarshal([]byte(opts.Agent.EnabledTools), &enabledTools)
+	}
+
+	// Parse enabled notification channels from agent JSON
+	var enabledNotificationChannels []string
+	if opts.Agent.EnabledNotificationChannels != "" {
+		_ = json.Unmarshal([]byte(opts.Agent.EnabledNotificationChannels), &enabledNotificationChannels)
+	}
+
+	// Get tools for agent
+	tools, err := l.ToolExecutor.GetToolsForAgent(ctx, enabledTools, enabledNotificationChannels)
+	if err != nil {
+		return nil, fmt.Errorf("get tools: %w", err)
+	}
+
+	// Resolve model: ModelOverride > Agent.Model > DefaultModel
+	model := l.DefaultModel
+	if opts.Agent.Model != "" {
+		model = opts.Agent.Model
+	}
+	if opts.ModelOverride != "" {
+		model = opts.ModelOverride
+	}
+
+	// Build input array with optional conversation history
+	var inputs []openrouter.Input
+	for _, msg := range opts.History {
+		inputs = append(inputs, BuildHistoryInputs(msg)...)
+	}
+	inputs = append(inputs, openrouter.Input{
+		Type: "message",
+		Role: "user",
+		Content: []openrouter.ContentPart{
+			{Type: "input_text", Text: opts.UserContent},
+		},
+	})
+
+	// Build instructions
+	instructions := opts.ExtraInstructions + opts.Agent.SystemPrompt
+
+	return &openrouter.ResponseRequest{
+		Model:        model,
+		Input:        inputs,
+		Instructions: instructions,
+		Tools:        tools,
+	}, nil
+}
+
 // RunTurn executes the agentic loop, publishing events to the broker.
 // Returns the assistant's text response.
 func (l *Loop) RunTurn(ctx context.Context, opts TurnOpts) (string, error) {
 	defer l.Broker.ClearBusy(opts.Conv.ID)
 
-	response, err := l.runLoop(ctx, opts.Conv, opts.Request, opts.UserContent, nil)
+	// Set context values for tool execution
+	ctx = tool.WithConversationID(ctx, opts.Conv.ID)
+	ctx = tool.WithAgentID(ctx, opts.Conv.AgentID)
+	if opts.Depth > 0 {
+		ctx = tool.WithDepth(ctx, opts.Depth)
+	}
+
+	orReq, err := l.prepareTurn(ctx, opts)
+	if err != nil {
+		l.Broker.Publish(opts.Conv.ID, Error{Message: err.Error()})
+		l.Broker.Publish(opts.Conv.ID, TurnDone{})
+		return "", err
+	}
+
+	response, err := l.runLoop(ctx, opts.Conv, orReq, opts.UserContent, nil)
 	if err != nil {
 		l.Broker.Publish(opts.Conv.ID, Error{Message: err.Error()})
 		l.Broker.Publish(opts.Conv.ID, TurnDone{})

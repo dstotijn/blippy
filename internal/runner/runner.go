@@ -2,14 +2,12 @@ package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/dstotijn/blippy/internal/agentloop"
-	"github.com/dstotijn/blippy/internal/openrouter"
 	"github.com/dstotijn/blippy/internal/pubsub"
 	"github.com/dstotijn/blippy/internal/store"
 	"github.com/dstotijn/blippy/internal/tool"
@@ -31,12 +29,9 @@ CRITICAL: You must complete the task independently:
 
 // Runner executes agent conversations without streaming.
 type Runner struct {
-	queries      *store.Queries
-	orClient     *openrouter.Client
-	defaultModel string
-	toolExecutor *tool.Executor
-	broker       *pubsub.Broker
-	loop         *agentloop.Loop
+	queries *store.Queries
+	broker  *pubsub.Broker
+	loop    *agentloop.Loop
 }
 
 // RunOpts configures a single agent run.
@@ -55,20 +50,11 @@ type RunResult struct {
 }
 
 // New creates a new Runner.
-func New(queries *store.Queries, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor, broker *pubsub.Broker) *Runner {
+func New(queries *store.Queries, broker *pubsub.Broker, loop *agentloop.Loop) *Runner {
 	return &Runner{
-		queries:      queries,
-		orClient:     orClient,
-		defaultModel: defaultModel,
-		toolExecutor: toolExecutor,
-		broker:       broker,
-		loop: &agentloop.Loop{
-			Queries:      queries,
-			ORClient:     orClient,
-			ToolExecutor: toolExecutor,
-			Broker:       broker,
-			DefaultModel: defaultModel,
-		},
+		queries: queries,
+		broker:  broker,
+		loop:    loop,
 	}
 }
 
@@ -85,20 +71,10 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 		return nil, fmt.Errorf("get agent: %w", err)
 	}
 
-	// Resolve model: opts.Model > agent.Model > defaultModel
-	model := r.defaultModel
-	if agent.Model != "" {
-		model = agent.Model
-	}
-	if opts.Model != "" {
-		model = opts.Model
-	}
-
 	// Create new conversation
 	now := time.Now().UTC()
-	convID := uuid.NewString()
 	conv, err := r.queries.CreateConversation(ctx, store.CreateConversationParams{
-		ID:                 convID,
+		ID:                 uuid.NewString(),
 		AgentID:            opts.AgentID,
 		Title:              opts.Title,
 		PreviousResponseID: "",
@@ -114,79 +90,19 @@ func (r *Runner) Run(ctx context.Context, opts RunOpts) (*RunResult, error) {
 	r.broker.Publish(conv.ID, agentloop.TurnStarted{})
 
 	// Save user message
-	userMsgID := uuid.NewString()
-	userItems, _ := json.Marshal([]agentloop.StoredItem{{Type: "text", Text: opts.Prompt}})
-	userItemsStr := string(userItems)
-	createdAt := now.Format(time.RFC3339)
-	_, err = r.queries.CreateMessage(ctx, store.CreateMessageParams{
-		ID:             userMsgID,
-		ConversationID: conv.ID,
-		Role:           "user",
-		Items:          userItemsStr,
-		CreatedAt:      createdAt,
-	})
-	if err != nil {
+	if _, err := r.loop.SaveUserMessage(ctx, conv.ID, opts.Prompt); err != nil {
 		r.broker.ClearBusy(conv.ID)
-		return nil, fmt.Errorf("create user message: %w", err)
-	}
-
-	// Publish user message event
-	r.broker.Publish(conv.ID, agentloop.MessageDone{
-		MessageID: userMsgID,
-		Role:      "user",
-		ItemsJSON: userItemsStr,
-		CreatedAt: createdAt,
-	})
-
-	// Set up context with depth and conversation ID
-	ctx = tool.WithDepth(ctx, opts.Depth)
-	ctx = tool.WithConversationID(ctx, conv.ID)
-	ctx = tool.WithAgentID(ctx, opts.AgentID)
-
-	// Parse enabled tools from JSON
-	var enabledTools []string
-	if agent.EnabledTools != "" {
-		_ = json.Unmarshal([]byte(agent.EnabledTools), &enabledTools)
-	}
-
-	// Parse enabled notification channels from JSON
-	var enabledNotificationChannels []string
-	if agent.EnabledNotificationChannels != "" {
-		_ = json.Unmarshal([]byte(agent.EnabledNotificationChannels), &enabledNotificationChannels)
-	}
-
-	// Build initial input
-	inputs := []openrouter.Input{
-		{
-			Type: "message",
-			Role: "user",
-			Content: []openrouter.ContentPart{
-				{Type: "input_text", Text: opts.Prompt},
-			},
-		},
-	}
-
-	// Get tools for agent
-	tools, err := r.toolExecutor.GetToolsForAgent(ctx, enabledTools, enabledNotificationChannels)
-	if err != nil {
-		r.broker.ClearBusy(conv.ID)
-		return nil, fmt.Errorf("get tools: %w", err)
-	}
-
-	// Build OpenRouter request with autonomous instructions prepended
-	instructions := autonomousInstructions + agent.SystemPrompt
-	orReq := &openrouter.ResponseRequest{
-		Model:        model,
-		Input:        inputs,
-		Instructions: instructions,
-		Tools:        tools,
+		return nil, fmt.Errorf("save user message: %w", err)
 	}
 
 	// Execute agentic loop
 	response, err := r.loop.RunTurn(ctx, agentloop.TurnOpts{
-		Conv:        conv,
-		Request:     orReq,
-		UserContent: opts.Prompt,
+		Conv:              conv,
+		Agent:             agent,
+		UserContent:       opts.Prompt,
+		ModelOverride:     opts.Model,
+		ExtraInstructions: autonomousInstructions,
+		Depth:             opts.Depth,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("run turn: %w", err)

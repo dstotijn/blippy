@@ -14,38 +14,23 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/dstotijn/blippy/internal/agentloop"
-	"github.com/dstotijn/blippy/internal/openrouter"
 	"github.com/dstotijn/blippy/internal/pubsub"
 	"github.com/dstotijn/blippy/internal/store"
-	"github.com/dstotijn/blippy/internal/tool"
 )
 
 type Service struct {
-	queries      *store.Queries
-	db           *sql.DB
-	orClient     *openrouter.Client
-	defaultModel string
-	toolExecutor *tool.Executor
-	broker       *pubsub.Broker
-	loop         *agentloop.Loop
+	queries *store.Queries
+	db      *sql.DB
+	broker  *pubsub.Broker
+	loop    *agentloop.Loop
 }
 
-func NewService(db *sql.DB, orClient *openrouter.Client, defaultModel string, toolExecutor *tool.Executor, broker *pubsub.Broker) *Service {
-	queries := store.New(db)
+func NewService(db *sql.DB, broker *pubsub.Broker, loop *agentloop.Loop) *Service {
 	return &Service{
-		queries:      queries,
-		db:           db,
-		orClient:     orClient,
-		defaultModel: defaultModel,
-		toolExecutor: toolExecutor,
-		broker:       broker,
-		loop: &agentloop.Loop{
-			Queries:      queries,
-			ORClient:     orClient,
-			ToolExecutor: toolExecutor,
-			Broker:       broker,
-			DefaultModel: defaultModel,
-		},
+		queries: store.New(db),
+		db:      db,
+		broker:  broker,
+		loop:    loop,
 	}
 }
 
@@ -145,12 +130,6 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest]) (
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	// Resolve model: agent.Model if set, else default
-	model := s.defaultModel
-	if agent.Model != "" {
-		model = agent.Model
-	}
-
 	// Get existing messages for conversation history
 	existingMsgs, err := s.queries.GetMessagesByConversation(ctx, conv.ID)
 	if err != nil {
@@ -159,83 +138,22 @@ func (s *Service) Chat(ctx context.Context, req *connect.Request[ChatRequest]) (
 	}
 
 	// Save user message
-	now := time.Now().UTC()
-	userMsgID := uuid.NewString()
-	userItems, _ := json.Marshal([]agentloop.StoredItem{{Type: "text", Text: req.Msg.Content}})
-	userItemsStr := string(userItems)
-	createdAt := now.Format(time.RFC3339)
-	_, err = s.queries.CreateMessage(ctx, store.CreateMessageParams{
-		ID:             userMsgID,
-		ConversationID: conv.ID,
-		Role:           "user",
-		Items:          userItemsStr,
-		CreatedAt:      createdAt,
-	})
+	userMsgID, err := s.loop.SaveUserMessage(ctx, conv.ID, req.Msg.Content)
 	if err != nil {
 		s.broker.ClearBusy(conv.ID)
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	// Publish user message and turn started events
-	s.broker.Publish(conv.ID, agentloop.MessageDone{
-		MessageID: userMsgID,
-		Role:      "user",
-		ItemsJSON: userItemsStr,
-		CreatedAt: createdAt,
-	})
+	// Publish turn started
 	s.broker.Publish(conv.ID, agentloop.TurnStarted{})
 
-	// Parse enabled tools from JSON
-	var enabledTools []string
-	if agent.EnabledTools != "" {
-		_ = json.Unmarshal([]byte(agent.EnabledTools), &enabledTools)
-	}
-
-	// Parse enabled notification channels from JSON
-	var enabledNotificationChannels []string
-	if agent.EnabledNotificationChannels != "" {
-		_ = json.Unmarshal([]byte(agent.EnabledNotificationChannels), &enabledNotificationChannels)
-	}
-
-	// Build context for background goroutine (not tied to HTTP request)
-	bgCtx := context.Background()
-	bgCtx = tool.WithConversationID(bgCtx, conv.ID)
-	bgCtx = tool.WithAgentID(bgCtx, conv.AgentID)
-
-	// Build input array with conversation history
-	var inputs []openrouter.Input
-	for _, msg := range existingMsgs {
-		inputs = append(inputs, agentloop.BuildHistoryInputs(msg)...)
-	}
-	inputs = append(inputs, openrouter.Input{
-		Type: "message",
-		Role: "user",
-		Content: []openrouter.ContentPart{
-			{Type: "input_text", Text: req.Msg.Content},
-		},
-	})
-
-	// Get tools for agent
-	tools, err := s.toolExecutor.GetToolsForAgent(bgCtx, enabledTools, enabledNotificationChannels)
-	if err != nil {
-		s.broker.ClearBusy(conv.ID)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get tools: %w", err))
-	}
-
-	// Build OpenRouter request
-	orReq := &openrouter.ResponseRequest{
-		Model:        model,
-		Input:        inputs,
-		Instructions: agent.SystemPrompt,
-		Tools:        tools,
-	}
-
-	// Start background processing
+	// Start background processing (not tied to HTTP request)
 	go func() {
-		if _, err := s.loop.RunTurn(bgCtx, agentloop.TurnOpts{
+		if _, err := s.loop.RunTurn(context.Background(), agentloop.TurnOpts{
 			Conv:        conv,
-			Request:     orReq,
+			Agent:       agent,
 			UserContent: req.Msg.Content,
+			History:     existingMsgs,
 		}); err != nil {
 			log.Printf("Background agent turn error (conv %s): %v", conv.ID, err)
 		}

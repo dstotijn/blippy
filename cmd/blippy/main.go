@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/dstotijn/blippy/internal/agent"
+	"github.com/dstotijn/blippy/internal/agentloop"
 	"github.com/dstotijn/blippy/internal/conversation"
 	"github.com/dstotijn/blippy/internal/notification"
 	"github.com/dstotijn/blippy/internal/openrouter"
@@ -49,9 +50,9 @@ func run() error {
 	queries := store.New(db)
 	orClient := openrouter.NewClient(openRouterAPIKey)
 
-	// Create trigger and notification services
-	triggerService := scheduler.NewTriggerService(queries)
-	notificationService := scheduler.NewNotificationService(queries)
+	// Create adapter services for tools
+	triggerCreator := trigger.NewCreator(queries)
+	channelLister := notification.NewChannelLister(queries)
 
 	// Set up tool registry
 	toolRegistry := tool.NewRegistry()
@@ -60,18 +61,27 @@ func run() error {
 		toolRegistry.Register(tool.NewBashTool(spritesAPIKey))
 		log.Println("Bash tool enabled (SPRITES_API_KEY set)")
 	}
-	toolExecutor := tool.NewExecutor(toolRegistry, notificationService)
+	toolExecutor := tool.NewExecutor(toolRegistry, channelLister)
 
 	// Create broker for pub/sub events
 	broker := pubsub.New()
 
+	// Create shared agentic loop
+	loop := &agentloop.Loop{
+		Queries:      queries,
+		ORClient:     orClient,
+		ToolExecutor: toolExecutor,
+		Broker:       broker,
+		DefaultModel: model,
+	}
+
 	// Create runner for autonomous execution
-	agentRunner := runner.New(queries, orClient, model, toolExecutor, broker)
+	agentRunner := runner.New(queries, broker, loop)
 	runnerAdapter := runner.NewAdapter(agentRunner)
 
 	// Register autonomous tools
 	toolRegistry.Register(tool.NewCallAgentTool(runnerAdapter))
-	toolRegistry.Register(tool.NewScheduleAgentRunTool(triggerService))
+	toolRegistry.Register(tool.NewScheduleAgentRunTool(triggerCreator))
 
 	// Create and start scheduler
 	logger := slog.Default()
@@ -82,7 +92,7 @@ func run() error {
 	defer sched.Stop()
 
 	agentService := agent.NewService(db, orClient)
-	conversationService := conversation.NewService(db, orClient, model, toolExecutor, broker)
+	conversationService := conversation.NewService(db, broker, loop)
 	triggerRPCService := trigger.NewService(db)
 	notificationRPCService := notification.NewService(db)
 	webhookHandler := webhook.New(queries, agentRunner, logger)

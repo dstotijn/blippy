@@ -1,4 +1,4 @@
-package scheduler
+package trigger
 
 import (
 	"context"
@@ -8,18 +8,19 @@ import (
 	"github.com/google/uuid"
 )
 
-// TriggerService provides trigger operations for tools.
-type TriggerService struct {
+// Creator provides trigger creation for tools.
+// Implements tool.TriggerCreator.
+type Creator struct {
 	queries *store.Queries
 }
 
-// NewTriggerService creates a new TriggerService.
-func NewTriggerService(queries *store.Queries) *TriggerService {
-	return &TriggerService{queries: queries}
+// NewCreator creates a new Creator.
+func NewCreator(queries *store.Queries) *Creator {
+	return &Creator{queries: queries}
 }
 
 // CreateTrigger creates a new trigger and returns its ID.
-func (s *TriggerService) CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time, model, title string) (string, error) {
+func (c *Creator) CreateTrigger(ctx context.Context, agentID, name, prompt string, cronExpr *string, nextRunAt time.Time, model, title string) (string, error) {
 	now := time.Now().Format(time.RFC3339)
 	id := uuid.NewString()
 
@@ -28,7 +29,7 @@ func (s *TriggerService) CreateTrigger(ctx context.Context, agentID, name, promp
 		cronExprValue = *cronExpr
 	}
 
-	_, err := s.queries.CreateTrigger(ctx, store.CreateTriggerParams{
+	_, err := c.queries.CreateTrigger(ctx, store.CreateTriggerParams{
 		ID:                id,
 		AgentID:           agentID,
 		Name:              name,
