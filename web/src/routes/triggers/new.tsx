@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -62,7 +63,7 @@ function NewTrigger() {
 	};
 
 	return (
-		<div className="mx-auto max-w-2xl space-y-6">
+		<PageContent className="mx-auto max-w-2xl space-y-6">
 			<div>
 				<h1 className="text-2xl font-bold tracking-tight">New Trigger</h1>
 				<p className="text-muted-foreground">
@@ -185,6 +186,6 @@ function NewTrigger() {
 					</form>
 				</CardContent>
 			</Card>
-		</div>
+		</PageContent>
 	);
 }

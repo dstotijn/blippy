@@ -2,6 +2,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bot, MessageSquare, Plus, Settings } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -30,7 +31,7 @@ function Index() {
 	const agents = data?.agents ?? [];
 
 	return (
-		<div className="space-y-6">
+		<PageContent className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Agents</h1>
@@ -125,6 +126,6 @@ function Index() {
 					))}
 				</div>
 			)}
-		</div>
+		</PageContent>
 	);
 }

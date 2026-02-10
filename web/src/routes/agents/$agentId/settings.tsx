@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -112,7 +113,7 @@ function AgentPage() {
 
 	if (isLoading) {
 		return (
-			<div className="mx-auto max-w-2xl space-y-6">
+			<PageContent className="mx-auto max-w-2xl space-y-6">
 				<div className="space-y-2">
 					<Skeleton className="h-8 w-48" />
 					<Skeleton className="h-4 w-64" />
@@ -128,7 +129,7 @@ function AgentPage() {
 						<Skeleton className="h-32 w-full" />
 					</CardContent>
 				</Card>
-			</div>
+			</PageContent>
 		);
 	}
 
@@ -141,7 +142,7 @@ function AgentPage() {
 	}
 
 	return (
-		<div className="mx-auto max-w-2xl space-y-6">
+		<PageContent className="mx-auto max-w-2xl space-y-6">
 			<div>
 				<h1 className="text-2xl font-bold tracking-tight">{agent.name}</h1>
 				<p className="text-muted-foreground">Agent settings</p>
@@ -376,6 +377,6 @@ function AgentPage() {
 					</form>
 				</CardContent>
 			</Card>
-		</div>
+		</PageContent>
 	);
 }

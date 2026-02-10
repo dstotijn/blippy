@@ -45,6 +45,28 @@
 		border-color: var(--color-border);
 	}
 
+	html,
+	body,
+	#root {
+		height: 100%;
+	}
+
+	@media (min-width: 768px) {
+		html,
+		body,
+		#root {
+			overflow: hidden;
+		}
+	}
+
+	button,
+	[role="button"],
+	a,
+	select,
+	summary {
+		cursor: pointer;
+	}
+
 	body {
 		background-color: var(--color-background);
 		color: var(--color-foreground);

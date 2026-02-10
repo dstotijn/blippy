@@ -4,6 +4,7 @@ import { MessageSquare, Plus, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { ConversationsTable } from "@/components/conversations-table";
 import { EmptyState } from "@/components/empty-state";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAgent } from "@/lib/rpc/agent/agent-AgentService_connectquery";
@@ -39,7 +40,7 @@ function ConversationsPage() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<PageContent className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">
@@ -90,6 +91,6 @@ function ConversationsPage() {
 			) : (
 				<ConversationsTable conversations={conversations} agentId={agentId} />
 			)}
-		</div>
+		</PageContent>
 	);
 }

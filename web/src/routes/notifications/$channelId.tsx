@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -121,7 +122,7 @@ function NotificationChannelDetail() {
 
 	if (isLoading) {
 		return (
-			<div className="mx-auto max-w-2xl space-y-6">
+			<PageContent className="mx-auto max-w-2xl space-y-6">
 				<Skeleton className="h-8 w-48" />
 				<Card>
 					<CardHeader>
@@ -132,7 +133,7 @@ function NotificationChannelDetail() {
 						<Skeleton className="h-10 w-full" />
 					</CardContent>
 				</Card>
-			</div>
+			</PageContent>
 		);
 	}
 
@@ -145,7 +146,7 @@ function NotificationChannelDetail() {
 	}
 
 	return (
-		<div className="mx-auto max-w-2xl space-y-6">
+		<PageContent className="mx-auto max-w-2xl space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">{channel.name}</h1>
@@ -274,6 +275,6 @@ function NotificationChannelDetail() {
 					</form>
 				</CardContent>
 			</Card>
-		</div>
+		</PageContent>
 	);
 }

@@ -2,6 +2,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, Plus } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { PageContent } from "@/components/page-content";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -30,7 +31,7 @@ function TriggersIndex() {
 	const triggers = data?.triggers ?? [];
 
 	return (
-		<div className="space-y-6">
+		<PageContent className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Triggers</h1>
@@ -109,6 +110,6 @@ function TriggersIndex() {
 					))}
 				</div>
 			)}
-		</div>
+		</PageContent>
 	);
 }

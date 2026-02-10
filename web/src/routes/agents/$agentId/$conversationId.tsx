@@ -357,9 +357,25 @@ function ConversationChat() {
     return () => controller.abort();
   }, [conversationId, transport]);
 
-  // Focus textarea on mount
+  // Dismiss keyboard when scrolling to the top
   useEffect(() => {
-    textareaRef.current?.focus();
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    let lastScrollTop = container.scrollTop;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const isScrollingUp = scrollTop < lastScrollTop;
+      lastScrollTop = scrollTop;
+
+      if (isScrollingUp && scrollTop <= 0) {
+        (document.activeElement as HTMLElement)?.blur();
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   const sendMessage = async () => {
@@ -369,7 +385,6 @@ function ConversationChat() {
     setInput("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.focus();
     }
 
     // Optimistic user message
@@ -412,18 +427,18 @@ function ConversationChat() {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-8rem)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex items-center justify-between border-b px-4 pb-4 pt-4 md:px-6">
         <h1 className="text-lg font-semibold">{title || "Chat"}</h1>
       </div>
 
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto pb-24 pt-4"
+        className="flex-1 overflow-y-auto overscroll-contain pt-4"
       >
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-3xl px-4 md:px-6">
           {messages.length === 0 && streamingItems.length === 0 ? (
             <div className="flex h-full items-center justify-center">
               <p className="text-muted-foreground">
@@ -471,8 +486,8 @@ function ConversationChat() {
       </div>
 
       {/* Input */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 pt-6">
-        <div className="mx-auto max-w-3xl">
+      <div className="shrink-0 pt-2 md:pb-4 md:px-6">
+        <div className="mx-auto max-w-3xl px-4 md:px-6">
           <div className="flex items-end gap-2 rounded-lg border bg-background p-2 shadow-sm">
             <Textarea
               ref={textareaRef}
@@ -501,9 +516,6 @@ function ConversationChat() {
               <span className="sr-only">Send message</span>
             </Button>
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Press Enter to send, Shift+Enter for new line
-          </p>
         </div>
       </div>
     </div>

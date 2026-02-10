@@ -141,7 +141,7 @@ function SidebarProvider({
 						} as React.CSSProperties
 					}
 					className={cn(
-						"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+						"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex h-full w-full md:overflow-hidden",
 						className,
 					)}
 					{...props}
@@ -504,6 +504,7 @@ function SidebarMenuButton({
 	size = "default",
 	tooltip,
 	className,
+	onClick,
 	...props
 }: React.ComponentProps<"button"> & {
 	asChild?: boolean;
@@ -511,7 +512,7 @@ function SidebarMenuButton({
 	tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
 	const Comp = asChild ? Slot.Root : "button";
-	const { isMobile, state } = useSidebar();
+	const { isMobile, state, setOpenMobile } = useSidebar();
 
 	const button = (
 		<Comp
@@ -520,6 +521,12 @@ function SidebarMenuButton({
 			data-size={size}
 			data-active={isActive}
 			className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+			onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+				onClick?.(e);
+				if (isMobile) {
+					setOpenMobile(false);
+				}
+			}}
 			{...props}
 		/>
 	);
