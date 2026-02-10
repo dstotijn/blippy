@@ -486,7 +486,7 @@ function ConversationChat() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 pt-2 md:pb-4 md:px-6">
+      <div className="shrink-0 pt-2 pb-[env(safe-area-inset-bottom)] md:pb-4 md:px-6">
         <div className="mx-auto max-w-3xl px-4 md:px-6">
           <div className="flex items-end gap-2 rounded-lg border bg-background p-2 shadow-sm">
             <Textarea

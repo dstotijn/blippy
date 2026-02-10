@@ -1,84 +1,84 @@
 [tools]
-lefthook = "2.0.16"
-go = "1.24"
-node = "22"
-buf = "latest"
-pnpm = "10.28.2"
-"npm:@bufbuild/protoc-gen-es" = "2.11.0"
-"npm:@connectrpc/protoc-gen-connect-query" = "2.2.0"
-protoc-gen-go = "1.36.11"
-protoc-gen-connect-go = "1.18.0"
-"go:github.com/sqlc-dev/sqlc/cmd/sqlc" = "1.30.0"
-"go:github.com/air-verse/air" = "1.64.4"
-"npm:shadcn" = "3.8.2"
+  lefthook = "2.0.16"
+  go = "1.24"
+  node = "22"
+  buf = "latest"
+  pnpm = "10.28.2"
+  "npm:@bufbuild/protoc-gen-es" = "2.11.0"
+  "npm:@connectrpc/protoc-gen-connect-query" = "2.2.0"
+  protoc-gen-go = "1.36.11"
+  protoc-gen-connect-go = "1.18.0"
+  "go:github.com/sqlc-dev/sqlc/cmd/sqlc" = "1.30.0"
+  "go:github.com/air-verse/air" = "1.64.4"
+  "npm:shadcn" = "3.8.2"
 
 [hooks]
-postinstall = "lefthook install"
+  postinstall = "lefthook install"
 
 [tasks.dev]
-description = "Run backend and frontend dev servers"
-depends = ["dev:server", "dev:web"]
+  description = "Run backend and frontend dev servers"
+  depends = ["dev:server", "dev:web"]
 
 [tasks."dev:server"]
-description = "Run Go backend dev server with live reload"
-run = "air -color=always"
+  description = "Run Go backend dev server with live reload"
+  run = "air -color=always"
 
 [tasks."dev:web"]
-description = "Run frontend dev server"
-dir = "web"
-run = "pnpm dev --clearScreen false"
-env = { FORCE_COLOR = "1" }
+  description = "Run frontend dev server"
+  dir = "web"
+  run = "pnpm dev --clearScreen false --host"
+  env = { FORCE_COLOR = "1" }
 
 [tasks.build]
-description = "Build production binary"
-run = "go generate ./web && go build -o bin/blippy ./cmd/blippy"
+  description = "Build production binary"
+  run = "go generate ./web && go build -o bin/blippy ./cmd/blippy"
 
 [tasks.test]
-description = "Run tests"
-run = "go test ./..."
+  description = "Run tests"
+  run = "go test ./..."
 
 [tasks.gen]
-description = "Generate all code"
-depends = ["gen:buf", "gen:sqlc"]
+  description = "Generate all code"
+  depends = ["gen:buf", "gen:sqlc"]
 
 [tasks."gen:buf"]
-description = "Generate protobuf code"
-run = "buf generate"
+  description = "Generate protobuf code"
+  run = "buf generate"
 
 [tasks."gen:sqlc"]
-description = "Generate sqlc code"
-run = "sqlc generate"
+  description = "Generate sqlc code"
+  run = "sqlc generate"
 
 [tasks."gen:watch"]
-description = "Watch and regenerate protobuf code"
-run = "buf generate --watch"
+  description = "Watch and regenerate protobuf code"
+  run = "buf generate --watch"
 
 [tasks."web:dev"]
-description = "Run frontend dev server"
-dir = "web"
-run = "pnpm dev"
+  description = "Run frontend dev server"
+  dir = "web"
+  run = "pnpm dev"
 
 [tasks."web:build"]
-description = "Build frontend for production"
-dir = "web"
-run = "pnpm build"
+  description = "Build frontend for production"
+  dir = "web"
+  run = "pnpm build"
 
 [tasks."web:install"]
-description = "Install frontend dependencies"
-dir = "web"
-run = "pnpm install"
+  description = "Install frontend dependencies"
+  dir = "web"
+  run = "pnpm install"
 
 [tasks."web:lint"]
-description = "Lint frontend code"
-dir = "web"
-run = "pnpm lint"
+  description = "Lint frontend code"
+  dir = "web"
+  run = "pnpm lint"
 
 [tasks."web:format"]
-description = "Format frontend code"
-dir = "web"
-run = "pnpm format"
+  description = "Format frontend code"
+  dir = "web"
+  run = "pnpm format"
 
 [tasks."web:check"]
-description = "Check frontend code (lint + format)"
-dir = "web"
-run = "pnpm check"
+  description = "Check frontend code (lint + format)"
+  dir = "web"
+  run = "pnpm check"
