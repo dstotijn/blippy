@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, Bot, Clock, Moon, Plus, Sun } from "lucide-react";
+import { BlippyLogo } from "@/components/blippy-logo";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,16 +36,9 @@ export function AppSidebar() {
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
-							<Link to="/">
-								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-									<Bot className="size-4" />
-								</div>
-								<div className="flex flex-col gap-0.5 leading-none">
-									<span className="font-semibold">Blippy</span>
-									<span className="text-xs text-muted-foreground">
-										AI Agent Platform
-									</span>
-								</div>
+							<Link to="/" className="!gap-3">
+								<BlippyLogo className="!size-8 shrink-0" />
+								<span className="text-lg font-semibold">Blippy</span>
 							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
@@ -104,7 +98,7 @@ export function AppSidebar() {
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarFooter className="mt-auto">
+			<SidebarFooter className="mt-auto pb-[env(safe-area-inset-bottom)] md:pb-2">
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton asChild>
