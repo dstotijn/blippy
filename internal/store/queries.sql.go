@@ -11,9 +11,9 @@ import (
 )
 
 const createAgent = `-- name: CreateAgent :one
-INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at
+INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots
 `
 
 type CreateAgentParams struct {
@@ -23,6 +23,7 @@ type CreateAgentParams struct {
 	SystemPrompt                string
 	EnabledTools                string
 	EnabledNotificationChannels string
+	EnabledFilesystemRoots      string
 	Model                       string
 	CreatedAt                   string
 	UpdatedAt                   string
@@ -36,6 +37,7 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 		arg.SystemPrompt,
 		arg.EnabledTools,
 		arg.EnabledNotificationChannels,
+		arg.EnabledFilesystemRoots,
 		arg.Model,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -51,6 +53,7 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 		&i.Model,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EnabledFilesystemRoots,
 	)
 	return i, err
 }
@@ -85,6 +88,44 @@ func (q *Queries) CreateConversation(ctx context.Context, arg CreateConversation
 		&i.AgentID,
 		&i.Title,
 		&i.PreviousResponseID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createFilesystemRoot = `-- name: CreateFilesystemRoot :one
+
+INSERT INTO filesystem_roots (id, name, path, description, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?)
+RETURNING id, name, path, description, created_at, updated_at
+`
+
+type CreateFilesystemRootParams struct {
+	ID          string
+	Name        string
+	Path        string
+	Description string
+	CreatedAt   string
+	UpdatedAt   string
+}
+
+// Filesystem Roots
+func (q *Queries) CreateFilesystemRoot(ctx context.Context, arg CreateFilesystemRootParams) (FilesystemRoot, error) {
+	row := q.db.QueryRowContext(ctx, createFilesystemRoot,
+		arg.ID,
+		arg.Name,
+		arg.Path,
+		arg.Description,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i FilesystemRoot
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Path,
+		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -280,6 +321,15 @@ func (q *Queries) DeleteConversation(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteFilesystemRoot = `-- name: DeleteFilesystemRoot :exec
+DELETE FROM filesystem_roots WHERE id = ?
+`
+
+func (q *Queries) DeleteFilesystemRoot(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteFilesystemRoot, id)
+	return err
+}
+
 const deleteNotificationChannel = `-- name: DeleteNotificationChannel :exec
 DELETE FROM notification_channels WHERE id = ?
 `
@@ -299,7 +349,7 @@ func (q *Queries) DeleteTrigger(ctx context.Context, id string) error {
 }
 
 const getAgent = `-- name: GetAgent :one
-SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at FROM agents WHERE id = ?
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots FROM agents WHERE id = ?
 `
 
 func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
@@ -315,6 +365,7 @@ func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
 		&i.Model,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EnabledFilesystemRoots,
 	)
 	return i, err
 }
@@ -374,6 +425,42 @@ func (q *Queries) GetDueTriggers(ctx context.Context, nextRunAt sql.NullString) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const getFilesystemRoot = `-- name: GetFilesystemRoot :one
+SELECT id, name, path, description, created_at, updated_at FROM filesystem_roots WHERE id = ?
+`
+
+func (q *Queries) GetFilesystemRoot(ctx context.Context, id string) (FilesystemRoot, error) {
+	row := q.db.QueryRowContext(ctx, getFilesystemRoot, id)
+	var i FilesystemRoot
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Path,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getFilesystemRootByName = `-- name: GetFilesystemRootByName :one
+SELECT id, name, path, description, created_at, updated_at FROM filesystem_roots WHERE name = ?
+`
+
+func (q *Queries) GetFilesystemRootByName(ctx context.Context, name string) (FilesystemRoot, error) {
+	row := q.db.QueryRowContext(ctx, getFilesystemRootByName, name)
+	var i FilesystemRoot
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Path,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getMessagesByConversation = `-- name: GetMessagesByConversation :many
@@ -473,7 +560,7 @@ func (q *Queries) GetTrigger(ctx context.Context, id string) (Trigger, error) {
 }
 
 const listAgents = `-- name: ListAgents :many
-SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at FROM agents ORDER BY created_at DESC
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots FROM agents ORDER BY created_at DESC
 `
 
 func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
@@ -495,6 +582,7 @@ func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
 			&i.Model,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EnabledFilesystemRoots,
 		); err != nil {
 			return nil, err
 		}
@@ -600,6 +688,40 @@ func (q *Queries) ListConversations(ctx context.Context, agentID string) ([]Conv
 			&i.AgentID,
 			&i.Title,
 			&i.PreviousResponseID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFilesystemRoots = `-- name: ListFilesystemRoots :many
+SELECT id, name, path, description, created_at, updated_at FROM filesystem_roots ORDER BY created_at DESC
+`
+
+func (q *Queries) ListFilesystemRoots(ctx context.Context) ([]FilesystemRoot, error) {
+	rows, err := q.db.QueryContext(ctx, listFilesystemRoots)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FilesystemRoot
+	for rows.Next() {
+		var i FilesystemRoot
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Path,
+			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -733,9 +855,9 @@ func (q *Queries) ListTriggersByAgent(ctx context.Context, agentID string) ([]Tr
 
 const updateAgent = `-- name: UpdateAgent :one
 UPDATE agents
-SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, model = ?, updated_at = ?
+SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, updated_at = ?
 WHERE id = ?
-RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots
 `
 
 type UpdateAgentParams struct {
@@ -744,6 +866,7 @@ type UpdateAgentParams struct {
 	SystemPrompt                string
 	EnabledTools                string
 	EnabledNotificationChannels string
+	EnabledFilesystemRoots      string
 	Model                       string
 	UpdatedAt                   string
 	ID                          string
@@ -756,6 +879,7 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 		arg.SystemPrompt,
 		arg.EnabledTools,
 		arg.EnabledNotificationChannels,
+		arg.EnabledFilesystemRoots,
 		arg.Model,
 		arg.UpdatedAt,
 		arg.ID,
@@ -771,6 +895,7 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 		&i.Model,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EnabledFilesystemRoots,
 	)
 	return i, err
 }
@@ -802,6 +927,39 @@ func (q *Queries) UpdateConversation(ctx context.Context, arg UpdateConversation
 		&i.AgentID,
 		&i.Title,
 		&i.PreviousResponseID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateFilesystemRoot = `-- name: UpdateFilesystemRoot :one
+UPDATE filesystem_roots SET name = ?, path = ?, description = ?, updated_at = ?
+WHERE id = ? RETURNING id, name, path, description, created_at, updated_at
+`
+
+type UpdateFilesystemRootParams struct {
+	Name        string
+	Path        string
+	Description string
+	UpdatedAt   string
+	ID          string
+}
+
+func (q *Queries) UpdateFilesystemRoot(ctx context.Context, arg UpdateFilesystemRootParams) (FilesystemRoot, error) {
+	row := q.db.QueryRowContext(ctx, updateFilesystemRoot,
+		arg.Name,
+		arg.Path,
+		arg.Description,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	var i FilesystemRoot
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Path,
+		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

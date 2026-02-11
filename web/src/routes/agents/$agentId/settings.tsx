@@ -35,6 +35,7 @@ import {
 	listModels,
 	updateAgent,
 } from "@/lib/rpc/agent/agent-AgentService_connectquery";
+import { listFilesystemRoots } from "@/lib/rpc/fsroot/fsroot-FilesystemRootService_connectquery";
 import { listNotificationChannels } from "@/lib/rpc/notification/notification-NotificationChannelService_connectquery";
 import { cn } from "@/lib/utils";
 
@@ -42,10 +43,18 @@ export const Route = createFileRoute("/agents/$agentId/settings")({
 	component: AgentPage,
 });
 
+const fsTools = [
+	{ name: "fs_view", label: "View" },
+	{ name: "fs_create", label: "Create" },
+	{ name: "fs_str_replace", label: "Replace" },
+	{ name: "fs_insert", label: "Insert" },
+] as const;
+
 function AgentPage() {
 	const { agentId } = Route.useParams();
 	const { data: agent, isLoading, error } = useQuery(getAgent, { id: agentId });
 	const { data: channelsData } = useQuery(listNotificationChannels, {});
+	const { data: rootsData } = useQuery(listFilesystemRoots, {});
 	const { data: modelsData } = useQuery(listModels, {});
 	const updateMutation = useMutation(updateAgent);
 
@@ -55,6 +64,9 @@ function AgentPage() {
 	const [enabledTools, setEnabledTools] = useState<string[]>([]);
 	const [enabledNotificationChannels, setEnabledNotificationChannels] =
 		useState<string[]>([]);
+	const [enabledFilesystemRoots, setEnabledFilesystemRoots] = useState<
+		{ rootId: string; enabledTools: string[] }[]
+	>([]);
 	const [model, setModel] = useState("");
 	const [modelOpen, setModelOpen] = useState(false);
 
@@ -65,6 +77,12 @@ function AgentPage() {
 			setSystemPrompt(agent.systemPrompt);
 			setEnabledTools(agent.enabledTools || []);
 			setEnabledNotificationChannels(agent.enabledNotificationChannels || []);
+			setEnabledFilesystemRoots(
+				agent.enabledFilesystemRoots?.map((r) => ({
+					rootId: r.rootId,
+					enabledTools: [...r.enabledTools],
+				})) || [],
+			);
 			setModel(agent.model);
 		}
 	}, [agent]);
@@ -79,6 +97,7 @@ function AgentPage() {
 				systemPrompt,
 				enabledTools,
 				enabledNotificationChannels,
+				enabledFilesystemRoots,
 				model,
 			});
 			toast.success("Agent updated");
@@ -101,6 +120,25 @@ function AgentPage() {
 				? prev.filter((id) => id !== channelId)
 				: [...prev, channelId],
 		);
+	};
+
+	const toggleRootTool = (rootId: string, toolName: string) => {
+		setEnabledFilesystemRoots((prev) => {
+			const existing = prev.find((r) => r.rootId === rootId);
+			if (!existing) {
+				return [...prev, { rootId, enabledTools: [toolName] }];
+			}
+			const hasTool = existing.enabledTools.includes(toolName);
+			const newTools = hasTool
+				? existing.enabledTools.filter((t) => t !== toolName)
+				: [...existing.enabledTools, toolName];
+			if (newTools.length === 0) {
+				return prev.filter((r) => r.rootId !== rootId);
+			}
+			return prev.map((r) =>
+				r.rootId === rootId ? { ...r, enabledTools: newTools } : r,
+			);
+		});
 	};
 
 	if (error) {
@@ -367,6 +405,57 @@ function AgentPage() {
 											</label>
 										</div>
 									))}
+								</div>
+							</div>
+						)}
+
+						{rootsData?.roots && rootsData.roots.length > 0 && (
+							<div className="space-y-2">
+								<Label>Filesystem Roots</Label>
+								<div className="space-y-3">
+									{rootsData.roots.map((root) => {
+										const config = enabledFilesystemRoots.find(
+											(r) => r.rootId === root.id,
+										);
+										return (
+											<div
+												key={root.id}
+												className="space-y-2 rounded-lg border p-3"
+											>
+												<div className="text-sm font-medium">
+													{root.name}
+													<span className="ml-2 font-normal text-xs text-muted-foreground">
+														— {root.path}
+													</span>
+												</div>
+												<div className="grid grid-cols-2 gap-2">
+													{fsTools.map((tool) => (
+														<div
+															key={tool.name}
+															className="flex items-center space-x-2"
+														>
+															<Checkbox
+																id={`root-${root.id}-${tool.name}`}
+																checked={
+																	config?.enabledTools.includes(tool.name) ??
+																	false
+																}
+																onCheckedChange={() =>
+																	toggleRootTool(root.id, tool.name)
+																}
+															/>
+															<label
+																htmlFor={`root-${root.id}-${tool.name}`}
+																className="text-sm leading-none"
+															>
+																{tool.label}
+															</label>
+														</div>
+													))}
+												</div>
+											</div>
+										);
+									})}
 								</div>
 							</div>
 						)}

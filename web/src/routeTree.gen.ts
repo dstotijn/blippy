@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TriggersIndexRouteImport } from './routes/triggers/index'
+import { Route as RootsIndexRouteImport } from './routes/roots/index'
 import { Route as NotificationsIndexRouteImport } from './routes/notifications/index'
 import { Route as TriggersNewRouteImport } from './routes/triggers/new'
 import { Route as TriggersTriggerIdRouteImport } from './routes/triggers/$triggerId'
+import { Route as RootsNewRouteImport } from './routes/roots/new'
+import { Route as RootsRootIdRouteImport } from './routes/roots/$rootId'
 import { Route as NotificationsNewRouteImport } from './routes/notifications/new'
 import { Route as NotificationsChannelIdRouteImport } from './routes/notifications/$channelId'
 import { Route as AgentsNewRouteImport } from './routes/agents/new'
@@ -32,6 +35,11 @@ const TriggersIndexRoute = TriggersIndexRouteImport.update({
   path: '/triggers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RootsIndexRoute = RootsIndexRouteImport.update({
+  id: '/roots/',
+  path: '/roots/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificationsIndexRoute = NotificationsIndexRouteImport.update({
   id: '/notifications/',
   path: '/notifications/',
@@ -45,6 +53,16 @@ const TriggersNewRoute = TriggersNewRouteImport.update({
 const TriggersTriggerIdRoute = TriggersTriggerIdRouteImport.update({
   id: '/triggers/$triggerId',
   path: '/triggers/$triggerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RootsNewRoute = RootsNewRouteImport.update({
+  id: '/roots/new',
+  path: '/roots/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RootsRootIdRoute = RootsRootIdRouteImport.update({
+  id: '/roots/$rootId',
+  path: '/roots/$rootId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsNewRoute = NotificationsNewRouteImport.update({
@@ -90,9 +108,12 @@ export interface FileRoutesByFullPath {
   '/agents/new': typeof AgentsNewRoute
   '/notifications/$channelId': typeof NotificationsChannelIdRoute
   '/notifications/new': typeof NotificationsNewRoute
+  '/roots/$rootId': typeof RootsRootIdRoute
+  '/roots/new': typeof RootsNewRoute
   '/triggers/$triggerId': typeof TriggersTriggerIdRoute
   '/triggers/new': typeof TriggersNewRoute
   '/notifications/': typeof NotificationsIndexRoute
+  '/roots/': typeof RootsIndexRoute
   '/triggers/': typeof TriggersIndexRoute
   '/agents/$agentId/$conversationId': typeof AgentsAgentIdConversationIdRoute
   '/agents/$agentId/settings': typeof AgentsAgentIdSettingsRoute
@@ -103,9 +124,12 @@ export interface FileRoutesByTo {
   '/agents/new': typeof AgentsNewRoute
   '/notifications/$channelId': typeof NotificationsChannelIdRoute
   '/notifications/new': typeof NotificationsNewRoute
+  '/roots/$rootId': typeof RootsRootIdRoute
+  '/roots/new': typeof RootsNewRoute
   '/triggers/$triggerId': typeof TriggersTriggerIdRoute
   '/triggers/new': typeof TriggersNewRoute
   '/notifications': typeof NotificationsIndexRoute
+  '/roots': typeof RootsIndexRoute
   '/triggers': typeof TriggersIndexRoute
   '/agents/$agentId/$conversationId': typeof AgentsAgentIdConversationIdRoute
   '/agents/$agentId/settings': typeof AgentsAgentIdSettingsRoute
@@ -118,9 +142,12 @@ export interface FileRoutesById {
   '/agents/new': typeof AgentsNewRoute
   '/notifications/$channelId': typeof NotificationsChannelIdRoute
   '/notifications/new': typeof NotificationsNewRoute
+  '/roots/$rootId': typeof RootsRootIdRoute
+  '/roots/new': typeof RootsNewRoute
   '/triggers/$triggerId': typeof TriggersTriggerIdRoute
   '/triggers/new': typeof TriggersNewRoute
   '/notifications/': typeof NotificationsIndexRoute
+  '/roots/': typeof RootsIndexRoute
   '/triggers/': typeof TriggersIndexRoute
   '/agents/$agentId/$conversationId': typeof AgentsAgentIdConversationIdRoute
   '/agents/$agentId/settings': typeof AgentsAgentIdSettingsRoute
@@ -134,9 +161,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/notifications/$channelId'
     | '/notifications/new'
+    | '/roots/$rootId'
+    | '/roots/new'
     | '/triggers/$triggerId'
     | '/triggers/new'
     | '/notifications/'
+    | '/roots/'
     | '/triggers/'
     | '/agents/$agentId/$conversationId'
     | '/agents/$agentId/settings'
@@ -147,9 +177,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/notifications/$channelId'
     | '/notifications/new'
+    | '/roots/$rootId'
+    | '/roots/new'
     | '/triggers/$triggerId'
     | '/triggers/new'
     | '/notifications'
+    | '/roots'
     | '/triggers'
     | '/agents/$agentId/$conversationId'
     | '/agents/$agentId/settings'
@@ -161,9 +194,12 @@ export interface FileRouteTypes {
     | '/agents/new'
     | '/notifications/$channelId'
     | '/notifications/new'
+    | '/roots/$rootId'
+    | '/roots/new'
     | '/triggers/$triggerId'
     | '/triggers/new'
     | '/notifications/'
+    | '/roots/'
     | '/triggers/'
     | '/agents/$agentId/$conversationId'
     | '/agents/$agentId/settings'
@@ -176,9 +212,12 @@ export interface RootRouteChildren {
   AgentsNewRoute: typeof AgentsNewRoute
   NotificationsChannelIdRoute: typeof NotificationsChannelIdRoute
   NotificationsNewRoute: typeof NotificationsNewRoute
+  RootsRootIdRoute: typeof RootsRootIdRoute
+  RootsNewRoute: typeof RootsNewRoute
   TriggersTriggerIdRoute: typeof TriggersTriggerIdRoute
   TriggersNewRoute: typeof TriggersNewRoute
   NotificationsIndexRoute: typeof NotificationsIndexRoute
+  RootsIndexRoute: typeof RootsIndexRoute
   TriggersIndexRoute: typeof TriggersIndexRoute
 }
 
@@ -196,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/triggers'
       fullPath: '/triggers/'
       preLoaderRoute: typeof TriggersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roots/': {
+      id: '/roots/'
+      path: '/roots'
+      fullPath: '/roots/'
+      preLoaderRoute: typeof RootsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications/': {
@@ -217,6 +263,20 @@ declare module '@tanstack/react-router' {
       path: '/triggers/$triggerId'
       fullPath: '/triggers/$triggerId'
       preLoaderRoute: typeof TriggersTriggerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roots/new': {
+      id: '/roots/new'
+      path: '/roots/new'
+      fullPath: '/roots/new'
+      preLoaderRoute: typeof RootsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roots/$rootId': {
+      id: '/roots/$rootId'
+      path: '/roots/$rootId'
+      fullPath: '/roots/$rootId'
+      preLoaderRoute: typeof RootsRootIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications/new': {
@@ -293,9 +353,12 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsNewRoute: AgentsNewRoute,
   NotificationsChannelIdRoute: NotificationsChannelIdRoute,
   NotificationsNewRoute: NotificationsNewRoute,
+  RootsRootIdRoute: RootsRootIdRoute,
+  RootsNewRoute: RootsNewRoute,
   TriggersTriggerIdRoute: TriggersTriggerIdRoute,
   TriggersNewRoute: TriggersNewRoute,
   NotificationsIndexRoute: NotificationsIndexRoute,
+  RootsIndexRoute: RootsIndexRoute,
   TriggersIndexRoute: TriggersIndexRoute,
 }
 export const routeTree = rootRouteImport

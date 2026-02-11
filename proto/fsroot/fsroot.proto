@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package blippy.fsroot;
+
+option go_package = "github.com/dstotijn/blippy/internal/fsroot";
+
+import "google/protobuf/timestamp.proto";
+
+message FilesystemRoot {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  string description = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message CreateFilesystemRootRequest {
+  string name = 1;
+  string path = 2;
+  string description = 3;
+}
+
+message GetFilesystemRootRequest {
+  string id = 1;
+}
+
+message ListFilesystemRootsRequest {}
+
+message ListFilesystemRootsResponse {
+  repeated FilesystemRoot roots = 1;
+}
+
+message UpdateFilesystemRootRequest {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  string description = 4;
+}
+
+message DeleteFilesystemRootRequest {
+  string id = 1;
+}
+
+message Empty {}
+
+service FilesystemRootService {
+  rpc CreateFilesystemRoot(CreateFilesystemRootRequest) returns (FilesystemRoot);
+  rpc GetFilesystemRoot(GetFilesystemRootRequest) returns (FilesystemRoot);
+  rpc ListFilesystemRoots(ListFilesystemRootsRequest) returns (ListFilesystemRootsResponse);
+  rpc UpdateFilesystemRoot(UpdateFilesystemRootRequest) returns (FilesystemRoot);
+  rpc DeleteFilesystemRoot(DeleteFilesystemRootRequest) returns (Empty);
+}

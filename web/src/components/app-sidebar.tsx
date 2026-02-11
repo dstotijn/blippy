@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Bot, Clock, Moon, Plus, Sun } from "lucide-react";
+import { Bell, Bot, Clock, HardDrive, Moon, Plus, Sun } from "lucide-react";
 import { BlippyLogo } from "@/components/blippy-logo";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -90,6 +90,14 @@ export function AppSidebar() {
 									<Link to="/notifications">
 										<Bell className="size-4" />
 										<span>Notifications</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton asChild isActive={isActive("/roots")}>
+									<Link to="/roots">
+										<HardDrive className="size-4" />
+										<span>Roots</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

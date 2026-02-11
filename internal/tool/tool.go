@@ -32,6 +32,30 @@ func GetAgentID(ctx context.Context) string {
 	return ""
 }
 
+// FilesystemRoot represents a configured filesystem root for tools.
+type FilesystemRoot struct {
+	ID, Name, Path, Description string
+}
+
+// AgentFilesystemRootConfig maps a root ID to its per-agent tool permissions.
+type AgentFilesystemRootConfig struct {
+	RootID       string
+	EnabledTools []string
+}
+
+type fsToolRootsKey struct{}
+
+// WithFSToolRoots returns a context with per-tool filesystem root mappings.
+func WithFSToolRoots(ctx context.Context, m map[string][]FilesystemRoot) context.Context {
+	return context.WithValue(ctx, fsToolRootsKey{}, m)
+}
+
+// GetFSToolRoots retrieves per-tool filesystem root mappings from context.
+func GetFSToolRoots(ctx context.Context) map[string][]FilesystemRoot {
+	m, _ := ctx.Value(fsToolRootsKey{}).(map[string][]FilesystemRoot)
+	return m
+}
+
 // Tool defines a callable tool for an agent
 type Tool struct {
 	Name        string          `json:"name"`

@@ -1,6 +1,6 @@
 -- name: CreateAgent :one
-INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetAgent :one
@@ -11,7 +11,7 @@ SELECT * FROM agents ORDER BY created_at DESC;
 
 -- name: UpdateAgent :one
 UPDATE agents
-SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, model = ?, updated_at = ?
+SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, updated_at = ?
 WHERE id = ?
 RETURNING *;
 
@@ -114,3 +114,26 @@ WHERE id = ? RETURNING *;
 
 -- name: DeleteNotificationChannel :exec
 DELETE FROM notification_channels WHERE id = ?;
+
+-- Filesystem Roots
+
+-- name: CreateFilesystemRoot :one
+INSERT INTO filesystem_roots (id, name, path, description, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?)
+RETURNING *;
+
+-- name: GetFilesystemRoot :one
+SELECT * FROM filesystem_roots WHERE id = ?;
+
+-- name: GetFilesystemRootByName :one
+SELECT * FROM filesystem_roots WHERE name = ?;
+
+-- name: ListFilesystemRoots :many
+SELECT * FROM filesystem_roots ORDER BY created_at DESC;
+
+-- name: UpdateFilesystemRoot :one
+UPDATE filesystem_roots SET name = ?, path = ?, description = ?, updated_at = ?
+WHERE id = ? RETURNING *;
+
+-- name: DeleteFilesystemRoot :exec
+DELETE FROM filesystem_roots WHERE id = ?;

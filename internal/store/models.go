@@ -18,6 +18,7 @@ type Agent struct {
 	Model                       string
 	CreatedAt                   string
 	UpdatedAt                   string
+	EnabledFilesystemRoots      string
 }
 
 type Conversation struct {
@@ -27,6 +28,15 @@ type Conversation struct {
 	PreviousResponseID string
 	CreatedAt          string
 	UpdatedAt          string
+}
+
+type FilesystemRoot struct {
+	ID          string
+	Name        string
+	Path        string
+	Description string
+	CreatedAt   string
+	UpdatedAt   string
 }
 
 type Message struct {

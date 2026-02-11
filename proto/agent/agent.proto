@@ -6,6 +6,11 @@ option go_package = "github.com/dstotijn/blippy/internal/agent";
 
 import "google/protobuf/timestamp.proto";
 
+message AgentFilesystemRoot {
+  string root_id = 1;
+  repeated string enabled_tools = 2;
+}
+
 message Agent {
   string id = 1;
   string name = 2;
@@ -16,6 +21,7 @@ message Agent {
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
   string model = 9;
+  repeated AgentFilesystemRoot enabled_filesystem_roots = 10;
 }
 
 message CreateAgentRequest {
@@ -25,6 +31,7 @@ message CreateAgentRequest {
   repeated string enabled_tools = 4;
   repeated string enabled_notification_channels = 5;
   string model = 6;
+  repeated AgentFilesystemRoot enabled_filesystem_roots = 7;
 }
 
 message GetAgentRequest {
@@ -45,6 +52,7 @@ message UpdateAgentRequest {
   repeated string enabled_tools = 5;
   repeated string enabled_notification_channels = 6;
   string model = 7;
+  repeated AgentFilesystemRoot enabled_filesystem_roots = 8;
 }
 
 message DeleteAgentRequest {

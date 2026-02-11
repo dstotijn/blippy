@@ -15,17 +15,24 @@ type NotificationChannelLister interface {
 	GetNotificationChannelByName(ctx context.Context, name string) (*NotificationChannel, error)
 }
 
+// FilesystemRootLister retrieves filesystem roots.
+type FilesystemRootLister interface {
+	ListFilesystemRootsByIDs(ctx context.Context, ids []string) ([]FilesystemRoot, error)
+}
+
 // Executor handles tool execution within a conversation
 type Executor struct {
 	registry           *Registry
 	notificationLister NotificationChannelLister
+	filesystemLister   FilesystemRootLister
 }
 
 // NewExecutor creates a tool executor
-func NewExecutor(registry *Registry, notificationLister NotificationChannelLister) *Executor {
+func NewExecutor(registry *Registry, notificationLister NotificationChannelLister, filesystemLister FilesystemRootLister) *Executor {
 	return &Executor{
 		registry:           registry,
 		notificationLister: notificationLister,
+		filesystemLister:   filesystemLister,
 	}
 }
 
@@ -115,7 +122,8 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 	return inputs, nil
 }
 
-// executeTool runs a tool, handling both static registry tools and dynamic notification tools
+// executeTool runs a tool, handling static registry tools, dynamic notification tools,
+// and dynamic filesystem tools.
 func (e *Executor) executeTool(ctx context.Context, name string, args json.RawMessage) (string, error) {
 	// Handle dynamic notification channel tools
 	if strings.HasPrefix(name, "notify:") {
@@ -133,21 +141,32 @@ func (e *Executor) executeTool(ctx context.Context, name string, args json.RawMe
 		return tool.Handler(ctx, args)
 	}
 
+	// Handle dynamic filesystem tools
+	if builder, ok := fsToolBuilders[name]; ok {
+		toolRoots := GetFSToolRoots(ctx)
+		roots := toolRoots[name]
+		if len(roots) == 0 {
+			return "", fmt.Errorf("no filesystem roots configured for tool %q", name)
+		}
+		tool := builder(roots)
+		return tool.Handler(ctx, args)
+	}
+
 	// Handle static registry tools
 	return e.registry.Execute(ctx, name, args)
 }
 
-// GetToolsForAgent returns tool definitions for enabled tools and notification channels.
+// GetToolsForAgent returns tool definitions for enabled tools, notification channels,
+// and filesystem roots. Returns a per-tool root mapping for context injection.
 // Tool names are encoded for API compatibility (e.g. "notify:" becomes "notify__").
-func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, enabledNotificationChannels []string) ([]map[string]any, error) {
-	// Get static tools from registry
+func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, enabledNotificationChannels []string, fsRootConfigs []AgentFilesystemRootConfig) ([]map[string]any, map[string][]FilesystemRoot, error) {
 	tools := e.registry.List(enabledTools)
 
 	// Add dynamic notification channel tools
 	if len(enabledNotificationChannels) > 0 && e.notificationLister != nil {
 		channels, err := e.notificationLister.ListNotificationChannelsByIDs(ctx, enabledNotificationChannels)
 		if err != nil {
-			return nil, fmt.Errorf("list notification channels: %w", err)
+			return nil, nil, fmt.Errorf("list notification channels: %w", err)
 		}
 
 		for _, channel := range channels {
@@ -161,7 +180,53 @@ func (e *Executor) GetToolsForAgent(ctx context.Context, enabledTools []string, 
 		}
 	}
 
-	return tools, nil
+	// Build per-tool filesystem root mapping
+	fsToolRoots := make(map[string][]FilesystemRoot)
+	if len(fsRootConfigs) > 0 && e.filesystemLister != nil {
+		// Collect unique root IDs
+		rootIDs := make([]string, 0, len(fsRootConfigs))
+		for _, cfg := range fsRootConfigs {
+			rootIDs = append(rootIDs, cfg.RootID)
+		}
+
+		allRoots, err := e.filesystemLister.ListFilesystemRootsByIDs(ctx, rootIDs)
+		if err != nil {
+			return nil, nil, fmt.Errorf("list filesystem roots: %w", err)
+		}
+
+		// Index roots by ID for lookup
+		rootsByID := make(map[string]FilesystemRoot, len(allRoots))
+		for _, r := range allRoots {
+			rootsByID[r.ID] = r
+		}
+
+		// For each root config, add the root to each enabled tool's list
+		for _, cfg := range fsRootConfigs {
+			root, ok := rootsByID[cfg.RootID]
+			if !ok {
+				continue
+			}
+			for _, toolName := range cfg.EnabledTools {
+				if _, ok := fsToolBuilders[toolName]; ok {
+					fsToolRoots[toolName] = append(fsToolRoots[toolName], root)
+				}
+			}
+		}
+
+		// Build tool definitions for each fs tool that has roots
+		for toolName, roots := range fsToolRoots {
+			builder := fsToolBuilders[toolName]
+			t := builder(roots)
+			tools = append(tools, map[string]any{
+				"type":        "function",
+				"name":        t.Name,
+				"description": t.Description,
+				"parameters":  t.Parameters,
+			})
+		}
+	}
+
+	return tools, fsToolRoots, nil
 }
 
 // EncodeToolName converts internal tool names to API-safe names.

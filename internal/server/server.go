@@ -9,6 +9,7 @@ import (
 
 	"github.com/dstotijn/blippy/internal/agent"
 	"github.com/dstotijn/blippy/internal/conversation"
+	"github.com/dstotijn/blippy/internal/fsroot"
 	"github.com/dstotijn/blippy/internal/notification"
 	"github.com/dstotijn/blippy/internal/trigger"
 	"github.com/dstotijn/blippy/internal/webhook"
@@ -24,6 +25,7 @@ func New(
 	conversationService *conversation.Service,
 	triggerService *trigger.Service,
 	notificationService *notification.Service,
+	fsrootService *fsroot.Service,
 	webhookHandler *webhook.Handler,
 ) (*Server, error) {
 	mux := http.NewServeMux()
@@ -43,6 +45,9 @@ func New(
 
 	notificationPath, notificationHandler := notification.NewNotificationChannelServiceHandler(notificationService, opts...)
 	apiMux.Handle(notificationPath, notificationHandler)
+
+	fsrootPath, fsrootHandler := fsroot.NewFilesystemRootServiceHandler(fsrootService, opts...)
+	apiMux.Handle(fsrootPath, fsrootHandler)
 
 	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 

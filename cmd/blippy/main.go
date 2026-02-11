@@ -12,6 +12,7 @@ import (
 	"github.com/dstotijn/blippy/internal/agent"
 	"github.com/dstotijn/blippy/internal/agentloop"
 	"github.com/dstotijn/blippy/internal/conversation"
+	"github.com/dstotijn/blippy/internal/fsroot"
 	"github.com/dstotijn/blippy/internal/notification"
 	"github.com/dstotijn/blippy/internal/openrouter"
 	"github.com/dstotijn/blippy/internal/pubsub"
@@ -53,6 +54,7 @@ func run() error {
 	// Create adapter services for tools
 	triggerCreator := trigger.NewCreator(queries)
 	channelLister := notification.NewChannelLister(queries)
+	rootLister := fsroot.NewRootLister(queries)
 
 	// Set up tool registry
 	toolRegistry := tool.NewRegistry()
@@ -61,7 +63,7 @@ func run() error {
 		toolRegistry.Register(tool.NewBashTool(spritesAPIKey))
 		log.Println("Bash tool enabled (SPRITES_API_KEY set)")
 	}
-	toolExecutor := tool.NewExecutor(toolRegistry, channelLister)
+	toolExecutor := tool.NewExecutor(toolRegistry, channelLister, rootLister)
 
 	// Create broker for pub/sub events
 	broker := pubsub.New()
@@ -95,8 +97,9 @@ func run() error {
 	conversationService := conversation.NewService(db, broker, loop)
 	triggerRPCService := trigger.NewService(db)
 	notificationRPCService := notification.NewService(db)
+	fsrootRPCService := fsroot.NewService(db)
 	webhookHandler := webhook.New(queries, agentRunner, logger)
-	srv, err := server.New(agentService, conversationService, triggerRPCService, notificationRPCService, webhookHandler)
+	srv, err := server.New(agentService, conversationService, triggerRPCService, notificationRPCService, fsrootRPCService, webhookHandler)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

@@ -27,6 +27,36 @@ func NewService(db *sql.DB, orClient *openrouter.Client) *Service {
 	}
 }
 
+// storedFSRoot is the JSON shape stored in the database for per-root tool config.
+type storedFSRoot struct {
+	RootID       string   `json:"root_id"`
+	EnabledTools []string `json:"enabled_tools"`
+}
+
+func marshalFSRoots(protoRoots []*AgentFilesystemRoot) ([]byte, error) {
+	stored := make([]storedFSRoot, len(protoRoots))
+	for i, r := range protoRoots {
+		stored[i] = storedFSRoot{
+			RootID:       r.RootId,
+			EnabledTools: r.EnabledTools,
+		}
+	}
+	return json.Marshal(stored)
+}
+
+func unmarshalFSRoots(data string) []*AgentFilesystemRoot {
+	var stored []storedFSRoot
+	_ = json.Unmarshal([]byte(data), &stored)
+	roots := make([]*AgentFilesystemRoot, len(stored))
+	for i, s := range stored {
+		roots[i] = &AgentFilesystemRoot{
+			RootId:       s.RootID,
+			EnabledTools: s.EnabledTools,
+		}
+	}
+	return roots
+}
+
 func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAgentRequest]) (*connect.Response[Agent], error) {
 	now := time.Now().UTC()
 
@@ -40,6 +70,11 @@ func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAg
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	enabledFilesystemRoots, err := marshalFSRoots(req.Msg.EnabledFilesystemRoots)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	agent, err := s.queries.CreateAgent(ctx, store.CreateAgentParams{
 		ID:                          uuid.NewString(),
 		Name:                        req.Msg.Name,
@@ -47,6 +82,7 @@ func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAg
 		SystemPrompt:                req.Msg.SystemPrompt,
 		EnabledTools:                string(enabledTools),
 		EnabledNotificationChannels: string(enabledNotificationChannels),
+		EnabledFilesystemRoots:      string(enabledFilesystemRoots),
 		Model:                       req.Msg.Model,
 		CreatedAt:                   now.Format(time.RFC3339),
 		UpdatedAt:                   now.Format(time.RFC3339),
@@ -95,6 +131,11 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	enabledFilesystemRoots, err := marshalFSRoots(req.Msg.EnabledFilesystemRoots)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	agent, err := s.queries.UpdateAgent(ctx, store.UpdateAgentParams{
 		ID:                          req.Msg.Id,
 		Name:                        req.Msg.Name,
@@ -102,6 +143,7 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 		SystemPrompt:                req.Msg.SystemPrompt,
 		EnabledTools:                string(enabledTools),
 		EnabledNotificationChannels: string(enabledNotificationChannels),
+		EnabledFilesystemRoots:      string(enabledFilesystemRoots),
 		Model:                       req.Msg.Model,
 		UpdatedAt:                   time.Now().UTC().Format(time.RFC3339),
 	})
@@ -149,6 +191,8 @@ func toProtoAgent(a store.Agent) *Agent {
 	var enabledNotificationChannels []string
 	_ = json.Unmarshal([]byte(a.EnabledNotificationChannels), &enabledNotificationChannels)
 
+	enabledFilesystemRoots := unmarshalFSRoots(a.EnabledFilesystemRoots)
+
 	createdAt, _ := time.Parse(time.RFC3339, a.CreatedAt)
 	updatedAt, _ := time.Parse(time.RFC3339, a.UpdatedAt)
 
@@ -159,6 +203,7 @@ func toProtoAgent(a store.Agent) *Agent {
 		SystemPrompt:                a.SystemPrompt,
 		EnabledTools:                enabledTools,
 		EnabledNotificationChannels: enabledNotificationChannels,
+		EnabledFilesystemRoots:      enabledFilesystemRoots,
 		Model:                       a.Model,
 		CreatedAt:                   timestamppb.New(createdAt),
 		UpdatedAt:                   timestamppb.New(updatedAt),

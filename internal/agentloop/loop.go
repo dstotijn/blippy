@@ -111,7 +111,8 @@ func (l *Loop) SaveUserMessage(ctx context.Context, convID, content string) (str
 }
 
 // prepareTurn builds the OpenRouter request from TurnOpts.
-func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.ResponseRequest, error) {
+// Returns the request and per-tool filesystem root mapping for context injection.
+func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.ResponseRequest, map[string][]tool.FilesystemRoot, error) {
 	// Parse enabled tools from agent JSON
 	var enabledTools []string
 	if opts.Agent.EnabledTools != "" {
@@ -124,10 +125,26 @@ func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.Resp
 		_ = json.Unmarshal([]byte(opts.Agent.EnabledNotificationChannels), &enabledNotificationChannels)
 	}
 
+	// Parse per-root filesystem tool config from agent JSON
+	var storedFSRoots []struct {
+		RootID       string   `json:"root_id"`
+		EnabledTools []string `json:"enabled_tools"`
+	}
+	if opts.Agent.EnabledFilesystemRoots != "" {
+		_ = json.Unmarshal([]byte(opts.Agent.EnabledFilesystemRoots), &storedFSRoots)
+	}
+	fsRootConfigs := make([]tool.AgentFilesystemRootConfig, len(storedFSRoots))
+	for i, r := range storedFSRoots {
+		fsRootConfigs[i] = tool.AgentFilesystemRootConfig{
+			RootID:       r.RootID,
+			EnabledTools: r.EnabledTools,
+		}
+	}
+
 	// Get tools for agent
-	tools, err := l.ToolExecutor.GetToolsForAgent(ctx, enabledTools, enabledNotificationChannels)
+	tools, fsToolRoots, err := l.ToolExecutor.GetToolsForAgent(ctx, enabledTools, enabledNotificationChannels, fsRootConfigs)
 	if err != nil {
-		return nil, fmt.Errorf("get tools: %w", err)
+		return nil, nil, fmt.Errorf("get tools: %w", err)
 	}
 
 	// Resolve model: ModelOverride > Agent.Model > DefaultModel
@@ -160,7 +177,7 @@ func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.Resp
 		Input:        inputs,
 		Instructions: instructions,
 		Tools:        tools,
-	}, nil
+	}, fsToolRoots, nil
 }
 
 // RunTurn executes the agentic loop, publishing events to the broker.
@@ -175,11 +192,15 @@ func (l *Loop) RunTurn(ctx context.Context, opts TurnOpts) (string, error) {
 		ctx = tool.WithDepth(ctx, opts.Depth)
 	}
 
-	orReq, err := l.prepareTurn(ctx, opts)
+	orReq, fsToolRoots, err := l.prepareTurn(ctx, opts)
 	if err != nil {
 		l.Broker.Publish(opts.Conv.ID, Error{Message: err.Error()})
 		l.Broker.Publish(opts.Conv.ID, TurnDone{})
 		return "", err
+	}
+
+	if len(fsToolRoots) > 0 {
+		ctx = tool.WithFSToolRoots(ctx, fsToolRoots)
 	}
 
 	response, err := l.runLoop(ctx, opts.Conv, orReq, opts.UserContent, nil)

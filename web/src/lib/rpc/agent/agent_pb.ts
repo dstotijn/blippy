@@ -12,7 +12,29 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file agent/agent.proto.
  */
 export const file_agent_agent: GenFile = /*@__PURE__*/
-  fileDesc("ChFhZ2VudC9hZ2VudC5wcm90bxIMYmxpcHB5LmFnZW50IvoBCgVBZ2VudBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhUKDXN5c3RlbV9wcm9tcHQYBCABKAkSFQoNZW5hYmxlZF90b29scxgFIAMoCRIlCh1lbmFibGVkX25vdGlmaWNhdGlvbl9jaGFubmVscxgGIAMoCRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVtb2RlbBgJIAEoCSKbAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSFQoNc3lzdGVtX3Byb21wdBgDIAEoCRIVCg1lbmFibGVkX3Rvb2xzGAQgAygJEiUKHWVuYWJsZWRfbm90aWZpY2F0aW9uX2NoYW5uZWxzGAUgAygJEg0KBW1vZGVsGAYgASgJIh0KD0dldEFnZW50UmVxdWVzdBIKCgJpZBgBIAEoCSITChFMaXN0QWdlbnRzUmVxdWVzdCI5ChJMaXN0QWdlbnRzUmVzcG9uc2USIwoGYWdlbnRzGAEgAygLMhMuYmxpcHB5LmFnZW50LkFnZW50IqcBChJVcGRhdGVBZ2VudFJlcXVlc3QSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIVCg1zeXN0ZW1fcHJvbXB0GAQgASgJEhUKDWVuYWJsZWRfdG9vbHMYBSADKAkSJQodZW5hYmxlZF9ub3RpZmljYXRpb25fY2hhbm5lbHMYBiADKAkSDQoFbW9kZWwYByABKAkiIAoSRGVsZXRlQWdlbnRSZXF1ZXN0EgoKAmlkGAEgASgJIgcKBUVtcHR5IlUKBU1vZGVsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSFgoOcHJvbXB0X3ByaWNpbmcYAyABKAkSGgoSY29tcGxldGlvbl9wcmljaW5nGAQgASgJIhMKEUxpc3RNb2RlbHNSZXF1ZXN0IjkKEkxpc3RNb2RlbHNSZXNwb25zZRIjCgZtb2RlbHMYASADKAsyEy5ibGlwcHkuYWdlbnQuTW9kZWwywgMKDEFnZW50U2VydmljZRJECgtDcmVhdGVBZ2VudBIgLmJsaXBweS5hZ2VudC5DcmVhdGVBZ2VudFJlcXVlc3QaEy5ibGlwcHkuYWdlbnQuQWdlbnQSPgoIR2V0QWdlbnQSHS5ibGlwcHkuYWdlbnQuR2V0QWdlbnRSZXF1ZXN0GhMuYmxpcHB5LmFnZW50LkFnZW50Ek8KCkxpc3RBZ2VudHMSHy5ibGlwcHkuYWdlbnQuTGlzdEFnZW50c1JlcXVlc3QaIC5ibGlwcHkuYWdlbnQuTGlzdEFnZW50c1Jlc3BvbnNlEkQKC1VwZGF0ZUFnZW50EiAuYmxpcHB5LmFnZW50LlVwZGF0ZUFnZW50UmVxdWVzdBoTLmJsaXBweS5hZ2VudC5BZ2VudBJECgtEZWxldGVBZ2VudBIgLmJsaXBweS5hZ2VudC5EZWxldGVBZ2VudFJlcXVlc3QaEy5ibGlwcHkuYWdlbnQuRW1wdHkSTwoKTGlzdE1vZGVscxIfLmJsaXBweS5hZ2VudC5MaXN0TW9kZWxzUmVxdWVzdBogLmJsaXBweS5hZ2VudC5MaXN0TW9kZWxzUmVzcG9uc2VCK1opZ2l0aHViLmNvbS9kc3RvdGlqbi9ibGlwcHkvaW50ZXJuYWwvYWdlbnRiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("ChFhZ2VudC9hZ2VudC5wcm90bxIMYmxpcHB5LmFnZW50Ij0KE0FnZW50RmlsZXN5c3RlbVJvb3QSDwoHcm9vdF9pZBgBIAEoCRIVCg1lbmFibGVkX3Rvb2xzGAIgAygJIr8CCgVBZ2VudBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhUKDXN5c3RlbV9wcm9tcHQYBCABKAkSFQoNZW5hYmxlZF90b29scxgFIAMoCRIlCh1lbmFibGVkX25vdGlmaWNhdGlvbl9jaGFubmVscxgGIAMoCRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVtb2RlbBgJIAEoCRJDChhlbmFibGVkX2ZpbGVzeXN0ZW1fcm9vdHMYCiADKAsyIS5ibGlwcHkuYWdlbnQuQWdlbnRGaWxlc3lzdGVtUm9vdCLgAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSFQoNc3lzdGVtX3Byb21wdBgDIAEoCRIVCg1lbmFibGVkX3Rvb2xzGAQgAygJEiUKHWVuYWJsZWRfbm90aWZpY2F0aW9uX2NoYW5uZWxzGAUgAygJEg0KBW1vZGVsGAYgASgJEkMKGGVuYWJsZWRfZmlsZXN5c3RlbV9yb290cxgHIAMoCzIhLmJsaXBweS5hZ2VudC5BZ2VudEZpbGVzeXN0ZW1Sb290Ih0KD0dldEFnZW50UmVxdWVzdBIKCgJpZBgBIAEoCSITChFMaXN0QWdlbnRzUmVxdWVzdCI5ChJMaXN0QWdlbnRzUmVzcG9uc2USIwoGYWdlbnRzGAEgAygLMhMuYmxpcHB5LmFnZW50LkFnZW50IuwBChJVcGRhdGVBZ2VudFJlcXVlc3QSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIVCg1zeXN0ZW1fcHJvbXB0GAQgASgJEhUKDWVuYWJsZWRfdG9vbHMYBSADKAkSJQodZW5hYmxlZF9ub3RpZmljYXRpb25fY2hhbm5lbHMYBiADKAkSDQoFbW9kZWwYByABKAkSQwoYZW5hYmxlZF9maWxlc3lzdGVtX3Jvb3RzGAggAygLMiEuYmxpcHB5LmFnZW50LkFnZW50RmlsZXN5c3RlbVJvb3QiIAoSRGVsZXRlQWdlbnRSZXF1ZXN0EgoKAmlkGAEgASgJIgcKBUVtcHR5IlUKBU1vZGVsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSFgoOcHJvbXB0X3ByaWNpbmcYAyABKAkSGgoSY29tcGxldGlvbl9wcmljaW5nGAQgASgJIhMKEUxpc3RNb2RlbHNSZXF1ZXN0IjkKEkxpc3RNb2RlbHNSZXNwb25zZRIjCgZtb2RlbHMYASADKAsyEy5ibGlwcHkuYWdlbnQuTW9kZWwywgMKDEFnZW50U2VydmljZRJECgtDcmVhdGVBZ2VudBIgLmJsaXBweS5hZ2VudC5DcmVhdGVBZ2VudFJlcXVlc3QaEy5ibGlwcHkuYWdlbnQuQWdlbnQSPgoIR2V0QWdlbnQSHS5ibGlwcHkuYWdlbnQuR2V0QWdlbnRSZXF1ZXN0GhMuYmxpcHB5LmFnZW50LkFnZW50Ek8KCkxpc3RBZ2VudHMSHy5ibGlwcHkuYWdlbnQuTGlzdEFnZW50c1JlcXVlc3QaIC5ibGlwcHkuYWdlbnQuTGlzdEFnZW50c1Jlc3BvbnNlEkQKC1VwZGF0ZUFnZW50EiAuYmxpcHB5LmFnZW50LlVwZGF0ZUFnZW50UmVxdWVzdBoTLmJsaXBweS5hZ2VudC5BZ2VudBJECgtEZWxldGVBZ2VudBIgLmJsaXBweS5hZ2VudC5EZWxldGVBZ2VudFJlcXVlc3QaEy5ibGlwcHkuYWdlbnQuRW1wdHkSTwoKTGlzdE1vZGVscxIfLmJsaXBweS5hZ2VudC5MaXN0TW9kZWxzUmVxdWVzdBogLmJsaXBweS5hZ2VudC5MaXN0TW9kZWxzUmVzcG9uc2VCK1opZ2l0aHViLmNvbS9kc3RvdGlqbi9ibGlwcHkvaW50ZXJuYWwvYWdlbnRiBnByb3RvMw", [file_google_protobuf_timestamp]);
+
+/**
+ * @generated from message blippy.agent.AgentFilesystemRoot
+ */
+export type AgentFilesystemRoot = Message<"blippy.agent.AgentFilesystemRoot"> & {
+  /**
+   * @generated from field: string root_id = 1;
+   */
+  rootId: string;
+
+  /**
+   * @generated from field: repeated string enabled_tools = 2;
+   */
+  enabledTools: string[];
+};
+
+/**
+ * Describes the message blippy.agent.AgentFilesystemRoot.
+ * Use `create(AgentFilesystemRootSchema)` to create a new message.
+ */
+export const AgentFilesystemRootSchema: GenMessage<AgentFilesystemRoot> = /*@__PURE__*/
+  messageDesc(file_agent_agent, 0);
 
 /**
  * @generated from message blippy.agent.Agent
@@ -64,6 +86,11 @@ export type Agent = Message<"blippy.agent.Agent"> & {
    * @generated from field: string model = 9;
    */
   model: string;
+
+  /**
+   * @generated from field: repeated blippy.agent.AgentFilesystemRoot enabled_filesystem_roots = 10;
+   */
+  enabledFilesystemRoots: AgentFilesystemRoot[];
 };
 
 /**
@@ -71,7 +98,7 @@ export type Agent = Message<"blippy.agent.Agent"> & {
  * Use `create(AgentSchema)` to create a new message.
  */
 export const AgentSchema: GenMessage<Agent> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 0);
+  messageDesc(file_agent_agent, 1);
 
 /**
  * @generated from message blippy.agent.CreateAgentRequest
@@ -106,6 +133,11 @@ export type CreateAgentRequest = Message<"blippy.agent.CreateAgentRequest"> & {
    * @generated from field: string model = 6;
    */
   model: string;
+
+  /**
+   * @generated from field: repeated blippy.agent.AgentFilesystemRoot enabled_filesystem_roots = 7;
+   */
+  enabledFilesystemRoots: AgentFilesystemRoot[];
 };
 
 /**
@@ -113,7 +145,7 @@ export type CreateAgentRequest = Message<"blippy.agent.CreateAgentRequest"> & {
  * Use `create(CreateAgentRequestSchema)` to create a new message.
  */
 export const CreateAgentRequestSchema: GenMessage<CreateAgentRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 1);
+  messageDesc(file_agent_agent, 2);
 
 /**
  * @generated from message blippy.agent.GetAgentRequest
@@ -130,7 +162,7 @@ export type GetAgentRequest = Message<"blippy.agent.GetAgentRequest"> & {
  * Use `create(GetAgentRequestSchema)` to create a new message.
  */
 export const GetAgentRequestSchema: GenMessage<GetAgentRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 2);
+  messageDesc(file_agent_agent, 3);
 
 /**
  * @generated from message blippy.agent.ListAgentsRequest
@@ -143,7 +175,7 @@ export type ListAgentsRequest = Message<"blippy.agent.ListAgentsRequest"> & {
  * Use `create(ListAgentsRequestSchema)` to create a new message.
  */
 export const ListAgentsRequestSchema: GenMessage<ListAgentsRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 3);
+  messageDesc(file_agent_agent, 4);
 
 /**
  * @generated from message blippy.agent.ListAgentsResponse
@@ -160,7 +192,7 @@ export type ListAgentsResponse = Message<"blippy.agent.ListAgentsResponse"> & {
  * Use `create(ListAgentsResponseSchema)` to create a new message.
  */
 export const ListAgentsResponseSchema: GenMessage<ListAgentsResponse> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 4);
+  messageDesc(file_agent_agent, 5);
 
 /**
  * @generated from message blippy.agent.UpdateAgentRequest
@@ -200,6 +232,11 @@ export type UpdateAgentRequest = Message<"blippy.agent.UpdateAgentRequest"> & {
    * @generated from field: string model = 7;
    */
   model: string;
+
+  /**
+   * @generated from field: repeated blippy.agent.AgentFilesystemRoot enabled_filesystem_roots = 8;
+   */
+  enabledFilesystemRoots: AgentFilesystemRoot[];
 };
 
 /**
@@ -207,7 +244,7 @@ export type UpdateAgentRequest = Message<"blippy.agent.UpdateAgentRequest"> & {
  * Use `create(UpdateAgentRequestSchema)` to create a new message.
  */
 export const UpdateAgentRequestSchema: GenMessage<UpdateAgentRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 5);
+  messageDesc(file_agent_agent, 6);
 
 /**
  * @generated from message blippy.agent.DeleteAgentRequest
@@ -224,7 +261,7 @@ export type DeleteAgentRequest = Message<"blippy.agent.DeleteAgentRequest"> & {
  * Use `create(DeleteAgentRequestSchema)` to create a new message.
  */
 export const DeleteAgentRequestSchema: GenMessage<DeleteAgentRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 6);
+  messageDesc(file_agent_agent, 7);
 
 /**
  * @generated from message blippy.agent.Empty
@@ -237,7 +274,7 @@ export type Empty = Message<"blippy.agent.Empty"> & {
  * Use `create(EmptySchema)` to create a new message.
  */
 export const EmptySchema: GenMessage<Empty> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 7);
+  messageDesc(file_agent_agent, 8);
 
 /**
  * @generated from message blippy.agent.Model
@@ -269,7 +306,7 @@ export type Model = Message<"blippy.agent.Model"> & {
  * Use `create(ModelSchema)` to create a new message.
  */
 export const ModelSchema: GenMessage<Model> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 8);
+  messageDesc(file_agent_agent, 9);
 
 /**
  * @generated from message blippy.agent.ListModelsRequest
@@ -282,7 +319,7 @@ export type ListModelsRequest = Message<"blippy.agent.ListModelsRequest"> & {
  * Use `create(ListModelsRequestSchema)` to create a new message.
  */
 export const ListModelsRequestSchema: GenMessage<ListModelsRequest> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 9);
+  messageDesc(file_agent_agent, 10);
 
 /**
  * @generated from message blippy.agent.ListModelsResponse
@@ -299,7 +336,7 @@ export type ListModelsResponse = Message<"blippy.agent.ListModelsResponse"> & {
  * Use `create(ListModelsResponseSchema)` to create a new message.
  */
 export const ListModelsResponseSchema: GenMessage<ListModelsResponse> = /*@__PURE__*/
-  messageDesc(file_agent_agent, 10);
+  messageDesc(file_agent_agent, 11);
 
 /**
  * @generated from service blippy.agent.AgentService
