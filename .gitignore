@@ -42,3 +42,6 @@ web/dist/
 # Claude Code
 .claude/settings.local.json
 tmp/
+
+# Worktrees
+.worktrees/
