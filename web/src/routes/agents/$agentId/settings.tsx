@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@connectrpc/connect-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Check, ChevronsUpDown, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageContent } from "@/components/page-content";
@@ -31,6 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	deleteAgent,
 	getAgent,
 	listModels,
 	updateAgent,
@@ -52,11 +53,13 @@ const fsTools = [
 
 function AgentPage() {
 	const { agentId } = Route.useParams();
+	const navigate = useNavigate();
 	const { data: agent, isLoading, error } = useQuery(getAgent, { id: agentId });
 	const { data: channelsData } = useQuery(listNotificationChannels, {});
 	const { data: rootsData } = useQuery(listFilesystemRoots, {});
 	const { data: modelsData } = useQuery(listModels, {});
 	const updateMutation = useMutation(updateAgent);
+	const deleteMutation = useMutation(deleteAgent);
 
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
@@ -103,6 +106,17 @@ function AgentPage() {
 			toast.success("Agent updated");
 		} catch {
 			toast.error("Failed to update agent");
+		}
+	};
+
+	const handleDelete = async () => {
+		if (!confirm("Are you sure you want to delete this agent? All conversations, messages, and triggers will be permanently deleted.")) return;
+		try {
+			await deleteMutation.mutateAsync({ id: agentId });
+			toast.success("Agent deleted");
+			navigate({ to: "/" });
+		} catch {
+			toast.error("Failed to delete agent");
 		}
 	};
 
@@ -464,6 +478,29 @@ function AgentPage() {
 							{updateMutation.isPending ? "Saving..." : "Save Changes"}
 						</Button>
 					</form>
+				</CardContent>
+			</Card>
+
+			<Card className="border-destructive/50">
+				<CardHeader>
+					<CardTitle>Danger Zone</CardTitle>
+					<CardDescription>
+						Permanently delete this agent and all its data
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<p className="mb-4 text-sm text-muted-foreground">
+						This will permanently delete the agent, including all conversations,
+						messages, and triggers. This action cannot be undone.
+					</p>
+					<Button
+						variant="destructive"
+						onClick={handleDelete}
+						disabled={deleteMutation.isPending}
+					>
+						<Trash2 className="mr-2 h-4 w-4" />
+						{deleteMutation.isPending ? "Deleting..." : "Delete Agent"}
+					</Button>
 				</CardContent>
 			</Card>
 		</PageContent>

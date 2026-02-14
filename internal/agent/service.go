@@ -158,6 +158,13 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 }
 
 func (s *Service) DeleteAgent(ctx context.Context, req *connect.Request[DeleteAgentRequest]) (*connect.Response[Empty], error) {
+	if _, err := s.queries.GetAgent(ctx, req.Msg.Id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("agent not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	if err := s.queries.DeleteAgent(ctx, req.Msg.Id); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

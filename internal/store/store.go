@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"sort"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -13,6 +14,14 @@ import (
 var migrations embed.FS
 
 func Open(path string) (*sql.DB, error) {
+	// Enable foreign key constraints via DSN so it applies to all pooled
+	// connections (PRAGMA is per-connection in SQLite).
+	if strings.Contains(path, "?") {
+		path += "&_pragma=foreign_keys(1)"
+	} else {
+		path += "?_pragma=foreign_keys(1)"
+	}
+
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
