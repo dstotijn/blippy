@@ -169,8 +169,38 @@ func (l *Loop) prepareTurn(ctx context.Context, opts TurnOpts) (*openrouter.Resp
 		},
 	})
 
+	// Inject memory guidance if any memory tool is enabled.
+	var memorySection string
+	memoryTools := []string{"memory_view", "memory_create", "memory_edit", "memory_delete"}
+	for _, t := range enabledTools {
+		for _, mt := range memoryTools {
+			if t == mt {
+				var sb strings.Builder
+				sb.WriteString("## Memory\n")
+				sb.WriteString("You have persistent memory across conversations via memory tools.\n")
+				sb.WriteString("MEMORY.md is your index file — it is loaded here at the start of every conversation.\n")
+				sb.WriteString("Keep MEMORY.md concise and use it to reference detailed topic files (e.g. projects/acme.md).\n")
+				sb.WriteString("Always update MEMORY.md when you create or delete other memory files.\n\n")
+
+				file, err := l.Queries.GetAgentFile(ctx, store.GetAgentFileParams{
+					AgentID: opts.Agent.ID,
+					Path:    "memories/MEMORY.md",
+				})
+				if err == nil {
+					sb.WriteString("### MEMORY.md\n")
+					sb.WriteString(file.Content)
+					sb.WriteString("\n\n")
+				}
+
+				memorySection = sb.String()
+				goto doneMemory
+			}
+		}
+	}
+doneMemory:
+
 	// Build instructions
-	instructions := opts.ExtraInstructions + opts.Agent.SystemPrompt
+	instructions := opts.ExtraInstructions + memorySection + opts.Agent.SystemPrompt
 
 	return &openrouter.ResponseRequest{
 		Model:        model,

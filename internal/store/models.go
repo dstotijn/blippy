@@ -21,6 +21,14 @@ type Agent struct {
 	EnabledFilesystemRoots      string
 }
 
+type AgentFile struct {
+	AgentID   string
+	Path      string
+	Content   string
+	CreatedAt string
+	UpdatedAt string
+}
+
 type Conversation struct {
 	ID                 string
 	AgentID            string

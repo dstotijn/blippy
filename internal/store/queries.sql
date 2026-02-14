@@ -137,3 +137,22 @@ WHERE id = ? RETURNING *;
 
 -- name: DeleteFilesystemRoot :exec
 DELETE FROM filesystem_roots WHERE id = ?;
+
+-- Agent Files
+
+-- name: UpsertAgentFile :one
+INSERT INTO agent_files (agent_id, path, content, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)
+ON CONFLICT (agent_id, path) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
+RETURNING *;
+
+-- name: GetAgentFile :one
+SELECT * FROM agent_files WHERE agent_id = ? AND path = ?;
+
+-- name: ListAgentFiles :many
+SELECT agent_id, path, created_at, updated_at
+FROM agent_files WHERE agent_id = ? AND path LIKE ?
+ORDER BY path ASC;
+
+-- name: DeleteAgentFile :exec
+DELETE FROM agent_files WHERE agent_id = ? AND path = ?;

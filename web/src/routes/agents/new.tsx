@@ -86,11 +86,22 @@ function NewAgent() {
 		}
 	};
 
+	const memoryTools = ["memory_view", "memory_create", "memory_edit", "memory_delete"];
+	const memoryEnabled = memoryTools.every((t) => enabledTools.includes(t));
+
 	const toggleTool = (toolName: string) => {
 		setEnabledTools((prev) =>
 			prev.includes(toolName)
 				? prev.filter((t) => t !== toolName)
 				: [...prev, toolName],
+		);
+	};
+
+	const toggleMemory = () => {
+		setEnabledTools((prev) =>
+			memoryEnabled
+				? prev.filter((t) => !memoryTools.includes(t))
+				: [...prev.filter((t) => !memoryTools.includes(t)), ...memoryTools],
 		);
 	};
 
@@ -315,6 +326,19 @@ function NewAgent() {
 										Call Agent
 										<span className="ml-2 text-xs text-muted-foreground">
 											— Invoke other agents as subagents
+										</span>
+									</label>
+								</div>
+								<div className="flex items-center space-x-2">
+									<Checkbox
+										id="tool-memory"
+										checked={memoryEnabled}
+										onCheckedChange={toggleMemory}
+									/>
+									<label htmlFor="tool-memory" className="text-sm leading-none">
+										Memory
+										<span className="ml-2 text-xs text-muted-foreground">
+											— Remember information across conversations
 										</span>
 									</label>
 								</div>

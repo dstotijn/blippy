@@ -312,6 +312,20 @@ func (q *Queries) DeleteAgent(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteAgentFile = `-- name: DeleteAgentFile :exec
+DELETE FROM agent_files WHERE agent_id = ? AND path = ?
+`
+
+type DeleteAgentFileParams struct {
+	AgentID string
+	Path    string
+}
+
+func (q *Queries) DeleteAgentFile(ctx context.Context, arg DeleteAgentFileParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAgentFile, arg.AgentID, arg.Path)
+	return err
+}
+
 const deleteConversation = `-- name: DeleteConversation :exec
 DELETE FROM conversations WHERE id = ?
 `
@@ -366,6 +380,28 @@ func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EnabledFilesystemRoots,
+	)
+	return i, err
+}
+
+const getAgentFile = `-- name: GetAgentFile :one
+SELECT agent_id, path, content, created_at, updated_at FROM agent_files WHERE agent_id = ? AND path = ?
+`
+
+type GetAgentFileParams struct {
+	AgentID string
+	Path    string
+}
+
+func (q *Queries) GetAgentFile(ctx context.Context, arg GetAgentFileParams) (AgentFile, error) {
+	row := q.db.QueryRowContext(ctx, getAgentFile, arg.AgentID, arg.Path)
+	var i AgentFile
+	err := row.Scan(
+		&i.AgentID,
+		&i.Path,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -557,6 +593,52 @@ func (q *Queries) GetTrigger(ctx context.Context, id string) (Trigger, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listAgentFiles = `-- name: ListAgentFiles :many
+SELECT agent_id, path, created_at, updated_at
+FROM agent_files WHERE agent_id = ? AND path LIKE ?
+ORDER BY path ASC
+`
+
+type ListAgentFilesParams struct {
+	AgentID string
+	Path    string
+}
+
+type ListAgentFilesRow struct {
+	AgentID   string
+	Path      string
+	CreatedAt string
+	UpdatedAt string
+}
+
+func (q *Queries) ListAgentFiles(ctx context.Context, arg ListAgentFilesParams) ([]ListAgentFilesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAgentFiles, arg.AgentID, arg.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAgentFilesRow
+	for rows.Next() {
+		var i ListAgentFilesRow
+		if err := rows.Scan(
+			&i.AgentID,
+			&i.Path,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAgents = `-- name: ListAgents :many
@@ -1084,4 +1166,40 @@ func (q *Queries) UpdateTriggerRun(ctx context.Context, arg UpdateTriggerRunPara
 		arg.ID,
 	)
 	return err
+}
+
+const upsertAgentFile = `-- name: UpsertAgentFile :one
+
+INSERT INTO agent_files (agent_id, path, content, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)
+ON CONFLICT (agent_id, path) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
+RETURNING agent_id, path, content, created_at, updated_at
+`
+
+type UpsertAgentFileParams struct {
+	AgentID   string
+	Path      string
+	Content   string
+	CreatedAt string
+	UpdatedAt string
+}
+
+// Agent Files
+func (q *Queries) UpsertAgentFile(ctx context.Context, arg UpsertAgentFileParams) (AgentFile, error) {
+	row := q.db.QueryRowContext(ctx, upsertAgentFile,
+		arg.AgentID,
+		arg.Path,
+		arg.Content,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i AgentFile
+	err := row.Scan(
+		&i.AgentID,
+		&i.Path,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

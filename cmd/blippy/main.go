@@ -85,6 +85,12 @@ func run() error {
 	toolRegistry.Register(tool.NewCallAgentTool(runnerAdapter))
 	toolRegistry.Register(tool.NewScheduleAgentRunTool(triggerCreator))
 
+	// Register memory tools
+	toolRegistry.Register(tool.NewMemoryViewTool(queries))
+	toolRegistry.Register(tool.NewMemoryCreateTool(queries))
+	toolRegistry.Register(tool.NewMemoryEditTool(queries))
+	toolRegistry.Register(tool.NewMemoryDeleteTool(queries))
+
 	// Create and start scheduler
 	logger := slog.Default()
 	sched := scheduler.New(db, queries, agentRunner, logger)
