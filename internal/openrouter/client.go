@@ -26,9 +26,9 @@ type Client struct {
 
 // Model represents an available model from OpenRouter.
 type Model struct {
-	ID               string
-	Name             string
-	PromptPricing    string
+	ID                string
+	Name              string
+	PromptPricing     string
 	CompletionPricing string
 }
 

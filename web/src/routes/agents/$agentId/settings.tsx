@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronsUpDown, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageContent } from "@/components/page-content";
@@ -72,6 +72,10 @@ function AgentPage() {
 	>([]);
 	const [model, setModel] = useState("");
 	const [modelOpen, setModelOpen] = useState(false);
+	const [forwardedHostEnvVars, setForwardedHostEnvVars] = useState<string[]>(
+		[],
+	);
+	const [newEnvVar, setNewEnvVar] = useState("");
 
 	useEffect(() => {
 		if (agent) {
@@ -87,6 +91,7 @@ function AgentPage() {
 				})) || [],
 			);
 			setModel(agent.model);
+			setForwardedHostEnvVars(agent.forwardedHostEnvVars || []);
 		}
 	}, [agent]);
 
@@ -102,6 +107,7 @@ function AgentPage() {
 				enabledNotificationChannels,
 				enabledFilesystemRoots,
 				model,
+				forwardedHostEnvVars,
 			});
 			toast.success("Agent updated");
 		} catch {
@@ -110,7 +116,12 @@ function AgentPage() {
 	};
 
 	const handleDelete = async () => {
-		if (!confirm("Are you sure you want to delete this agent? All conversations, messages, and triggers will be permanently deleted.")) return;
+		if (
+			!confirm(
+				"Are you sure you want to delete this agent? All conversations, messages, and triggers will be permanently deleted.",
+			)
+		)
+			return;
 		try {
 			await deleteMutation.mutateAsync({ id: agentId });
 			toast.success("Agent deleted");
@@ -120,7 +131,12 @@ function AgentPage() {
 		}
 	};
 
-	const memoryTools = ["memory_view", "memory_create", "memory_edit", "memory_delete"];
+	const memoryTools = [
+		"memory_view",
+		"memory_create",
+		"memory_edit",
+		"memory_delete",
+	];
 	const memoryEnabled = memoryTools.every((t) => enabledTools.includes(t));
 
 	const toggleTool = (toolName: string) => {
@@ -497,6 +513,72 @@ function AgentPage() {
 								</div>
 							</div>
 						)}
+
+						<div className="space-y-2">
+							<Label>Environment Variables</Label>
+							<p className="text-xs text-muted-foreground">
+								Host environment variable names to forward into bash execution
+							</p>
+							<div className="flex gap-2">
+								<Input
+									type="text"
+									placeholder="ENV_VAR_NAME"
+									value={newEnvVar}
+									onChange={(e) =>
+										setNewEnvVar(
+											e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""),
+										)
+									}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											e.preventDefault();
+											const trimmed = newEnvVar.trim();
+											if (trimmed && !forwardedHostEnvVars.includes(trimmed)) {
+												setForwardedHostEnvVars((prev) => [...prev, trimmed]);
+											}
+											setNewEnvVar("");
+										}
+									}}
+									className="font-mono"
+								/>
+								<Button
+									type="button"
+									variant="secondary"
+									onClick={() => {
+										const trimmed = newEnvVar.trim();
+										if (trimmed && !forwardedHostEnvVars.includes(trimmed)) {
+											setForwardedHostEnvVars((prev) => [...prev, trimmed]);
+										}
+										setNewEnvVar("");
+									}}
+								>
+									Add
+								</Button>
+							</div>
+							{forwardedHostEnvVars.length > 0 && (
+								<div className="flex flex-wrap gap-2">
+									{forwardedHostEnvVars.map((envVar) => (
+										<span
+											key={envVar}
+											className="inline-flex items-center gap-1 rounded-md border bg-muted px-2 py-1 font-mono text-xs"
+										>
+											{envVar}
+											<button
+												type="button"
+												onClick={() =>
+													setForwardedHostEnvVars((prev) =>
+														prev.filter((v) => v !== envVar),
+													)
+												}
+												className="text-muted-foreground hover:text-foreground"
+											>
+												<X className="h-3 w-3" />
+											</button>
+										</span>
+									))}
+								</div>
+							)}
+						</div>
 
 						<Button type="submit" disabled={updateMutation.isPending}>
 							{updateMutation.isPending ? "Saving..." : "Save Changes"}

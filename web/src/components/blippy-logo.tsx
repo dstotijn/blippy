@@ -4,6 +4,8 @@ export function BlippyLogo({ className }: { className?: string }) {
 			viewBox="25 10 155 160"
 			xmlns="http://www.w3.org/2000/svg"
 			className={className}
+			role="img"
+			aria-label="Blippy logo"
 		>
 			<path
 				d="M 55,155 C 40,130 32,100 38,70 C 44,40 68,20 100,18 C 132,16 160,38 166,70 C 172,102 162,140 145,160"

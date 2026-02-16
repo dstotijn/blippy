@@ -222,6 +222,14 @@ func (l *Loop) RunTurn(ctx context.Context, opts TurnOpts) (string, error) {
 		ctx = tool.WithDepth(ctx, opts.Depth)
 	}
 
+	var forwardedHostEnvVars []string
+	if opts.Agent.ForwardedHostEnvVars != "" {
+		_ = json.Unmarshal([]byte(opts.Agent.ForwardedHostEnvVars), &forwardedHostEnvVars)
+	}
+	if len(forwardedHostEnvVars) > 0 {
+		ctx = tool.WithHostEnvVars(ctx, forwardedHostEnvVars)
+	}
+
 	orReq, fsToolRoots, err := l.prepareTurn(ctx, opts)
 	if err != nil {
 		l.Broker.Publish(opts.Conv.ID, Error{Message: err.Error()})

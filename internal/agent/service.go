@@ -75,6 +75,11 @@ func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAg
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	forwardedHostEnvVars, err := json.Marshal(req.Msg.ForwardedHostEnvVars)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	agent, err := s.queries.CreateAgent(ctx, store.CreateAgentParams{
 		ID:                          uuid.NewString(),
 		Name:                        req.Msg.Name,
@@ -84,6 +89,7 @@ func (s *Service) CreateAgent(ctx context.Context, req *connect.Request[CreateAg
 		EnabledNotificationChannels: string(enabledNotificationChannels),
 		EnabledFilesystemRoots:      string(enabledFilesystemRoots),
 		Model:                       req.Msg.Model,
+		ForwardedHostEnvVars:        string(forwardedHostEnvVars),
 		CreatedAt:                   now.Format(time.RFC3339),
 		UpdatedAt:                   now.Format(time.RFC3339),
 	})
@@ -136,6 +142,11 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	forwardedHostEnvVars, err := json.Marshal(req.Msg.ForwardedHostEnvVars)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	agent, err := s.queries.UpdateAgent(ctx, store.UpdateAgentParams{
 		ID:                          req.Msg.Id,
 		Name:                        req.Msg.Name,
@@ -145,6 +156,7 @@ func (s *Service) UpdateAgent(ctx context.Context, req *connect.Request[UpdateAg
 		EnabledNotificationChannels: string(enabledNotificationChannels),
 		EnabledFilesystemRoots:      string(enabledFilesystemRoots),
 		Model:                       req.Msg.Model,
+		ForwardedHostEnvVars:        string(forwardedHostEnvVars),
 		UpdatedAt:                   time.Now().UTC().Format(time.RFC3339),
 	})
 	if err != nil {
@@ -181,9 +193,9 @@ func (s *Service) ListModels(ctx context.Context, req *connect.Request[ListModel
 	protoModels := make([]*Model, len(models))
 	for i, m := range models {
 		protoModels[i] = &Model{
-			Id:               m.ID,
-			Name:             m.Name,
-			PromptPricing:    m.PromptPricing,
+			Id:                m.ID,
+			Name:              m.Name,
+			PromptPricing:     m.PromptPricing,
 			CompletionPricing: m.CompletionPricing,
 		}
 	}
@@ -200,6 +212,9 @@ func toProtoAgent(a store.Agent) *Agent {
 
 	enabledFilesystemRoots := unmarshalFSRoots(a.EnabledFilesystemRoots)
 
+	var forwardedHostEnvVars []string
+	_ = json.Unmarshal([]byte(a.ForwardedHostEnvVars), &forwardedHostEnvVars)
+
 	createdAt, _ := time.Parse(time.RFC3339, a.CreatedAt)
 	updatedAt, _ := time.Parse(time.RFC3339, a.UpdatedAt)
 
@@ -211,6 +226,7 @@ func toProtoAgent(a store.Agent) *Agent {
 		EnabledTools:                enabledTools,
 		EnabledNotificationChannels: enabledNotificationChannels,
 		EnabledFilesystemRoots:      enabledFilesystemRoots,
+		ForwardedHostEnvVars:        forwardedHostEnvVars,
 		Model:                       a.Model,
 		CreatedAt:                   timestamppb.New(createdAt),
 		UpdatedAt:                   timestamppb.New(updatedAt),

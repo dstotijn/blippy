@@ -86,6 +86,7 @@ type Agent struct {
 	UpdatedAt                   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Model                       string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
 	EnabledFilesystemRoots      []*AgentFilesystemRoot `protobuf:"bytes,10,rep,name=enabled_filesystem_roots,json=enabledFilesystemRoots,proto3" json:"enabled_filesystem_roots,omitempty"`
+	ForwardedHostEnvVars        []string               `protobuf:"bytes,11,rep,name=forwarded_host_env_vars,json=forwardedHostEnvVars,proto3" json:"forwarded_host_env_vars,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -190,6 +191,13 @@ func (x *Agent) GetEnabledFilesystemRoots() []*AgentFilesystemRoot {
 	return nil
 }
 
+func (x *Agent) GetForwardedHostEnvVars() []string {
+	if x != nil {
+		return x.ForwardedHostEnvVars
+	}
+	return nil
+}
+
 type CreateAgentRequest struct {
 	state                       protoimpl.MessageState `protogen:"open.v1"`
 	Name                        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -199,6 +207,7 @@ type CreateAgentRequest struct {
 	EnabledNotificationChannels []string               `protobuf:"bytes,5,rep,name=enabled_notification_channels,json=enabledNotificationChannels,proto3" json:"enabled_notification_channels,omitempty"`
 	Model                       string                 `protobuf:"bytes,6,opt,name=model,proto3" json:"model,omitempty"`
 	EnabledFilesystemRoots      []*AgentFilesystemRoot `protobuf:"bytes,7,rep,name=enabled_filesystem_roots,json=enabledFilesystemRoots,proto3" json:"enabled_filesystem_roots,omitempty"`
+	ForwardedHostEnvVars        []string               `protobuf:"bytes,8,rep,name=forwarded_host_env_vars,json=forwardedHostEnvVars,proto3" json:"forwarded_host_env_vars,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -278,6 +287,13 @@ func (x *CreateAgentRequest) GetModel() string {
 func (x *CreateAgentRequest) GetEnabledFilesystemRoots() []*AgentFilesystemRoot {
 	if x != nil {
 		return x.EnabledFilesystemRoots
+	}
+	return nil
+}
+
+func (x *CreateAgentRequest) GetForwardedHostEnvVars() []string {
+	if x != nil {
+		return x.ForwardedHostEnvVars
 	}
 	return nil
 }
@@ -416,6 +432,7 @@ type UpdateAgentRequest struct {
 	EnabledNotificationChannels []string               `protobuf:"bytes,6,rep,name=enabled_notification_channels,json=enabledNotificationChannels,proto3" json:"enabled_notification_channels,omitempty"`
 	Model                       string                 `protobuf:"bytes,7,opt,name=model,proto3" json:"model,omitempty"`
 	EnabledFilesystemRoots      []*AgentFilesystemRoot `protobuf:"bytes,8,rep,name=enabled_filesystem_roots,json=enabledFilesystemRoots,proto3" json:"enabled_filesystem_roots,omitempty"`
+	ForwardedHostEnvVars        []string               `protobuf:"bytes,9,rep,name=forwarded_host_env_vars,json=forwardedHostEnvVars,proto3" json:"forwarded_host_env_vars,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -502,6 +519,13 @@ func (x *UpdateAgentRequest) GetModel() string {
 func (x *UpdateAgentRequest) GetEnabledFilesystemRoots() []*AgentFilesystemRoot {
 	if x != nil {
 		return x.EnabledFilesystemRoots
+	}
+	return nil
+}
+
+func (x *UpdateAgentRequest) GetForwardedHostEnvVars() []string {
+	if x != nil {
+		return x.ForwardedHostEnvVars
 	}
 	return nil
 }
@@ -741,7 +765,7 @@ const file_agent_agent_proto_rawDesc = "" +
 	"\x11agent/agent.proto\x12\fblippy.agent\x1a\x1fgoogle/protobuf/timestamp.proto\"S\n" +
 	"\x13AgentFilesystemRoot\x12\x17\n" +
 	"\aroot_id\x18\x01 \x01(\tR\x06rootId\x12#\n" +
-	"\renabled_tools\x18\x02 \x03(\tR\fenabledTools\"\xc4\x03\n" +
+	"\renabled_tools\x18\x02 \x03(\tR\fenabledTools\"\xfb\x03\n" +
 	"\x05Agent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -755,7 +779,8 @@ const file_agent_agent_proto_rawDesc = "" +
 	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x14\n" +
 	"\x05model\x18\t \x01(\tR\x05model\x12[\n" +
 	"\x18enabled_filesystem_roots\x18\n" +
-	" \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\"\xcb\x02\n" +
+	" \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\x125\n" +
+	"\x17forwarded_host_env_vars\x18\v \x03(\tR\x14forwardedHostEnvVars\"\x82\x03\n" +
 	"\x12CreateAgentRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12#\n" +
@@ -763,12 +788,13 @@ const file_agent_agent_proto_rawDesc = "" +
 	"\renabled_tools\x18\x04 \x03(\tR\fenabledTools\x12B\n" +
 	"\x1denabled_notification_channels\x18\x05 \x03(\tR\x1benabledNotificationChannels\x12\x14\n" +
 	"\x05model\x18\x06 \x01(\tR\x05model\x12[\n" +
-	"\x18enabled_filesystem_roots\x18\a \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\"!\n" +
+	"\x18enabled_filesystem_roots\x18\a \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\x125\n" +
+	"\x17forwarded_host_env_vars\x18\b \x03(\tR\x14forwardedHostEnvVars\"!\n" +
 	"\x0fGetAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x13\n" +
 	"\x11ListAgentsRequest\"A\n" +
 	"\x12ListAgentsResponse\x12+\n" +
-	"\x06agents\x18\x01 \x03(\v2\x13.blippy.agent.AgentR\x06agents\"\xdb\x02\n" +
+	"\x06agents\x18\x01 \x03(\v2\x13.blippy.agent.AgentR\x06agents\"\x92\x03\n" +
 	"\x12UpdateAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -777,7 +803,8 @@ const file_agent_agent_proto_rawDesc = "" +
 	"\renabled_tools\x18\x05 \x03(\tR\fenabledTools\x12B\n" +
 	"\x1denabled_notification_channels\x18\x06 \x03(\tR\x1benabledNotificationChannels\x12\x14\n" +
 	"\x05model\x18\a \x01(\tR\x05model\x12[\n" +
-	"\x18enabled_filesystem_roots\x18\b \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\"$\n" +
+	"\x18enabled_filesystem_roots\x18\b \x03(\v2!.blippy.agent.AgentFilesystemRootR\x16enabledFilesystemRoots\x125\n" +
+	"\x17forwarded_host_env_vars\x18\t \x03(\tR\x14forwardedHostEnvVars\"$\n" +
 	"\x12DeleteAgentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\a\n" +
 	"\x05Empty\"\x81\x01\n" +

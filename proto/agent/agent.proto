@@ -22,6 +22,7 @@ message Agent {
   google.protobuf.Timestamp updated_at = 8;
   string model = 9;
   repeated AgentFilesystemRoot enabled_filesystem_roots = 10;
+  repeated string forwarded_host_env_vars = 11;
 }
 
 message CreateAgentRequest {
@@ -32,6 +33,7 @@ message CreateAgentRequest {
   repeated string enabled_notification_channels = 5;
   string model = 6;
   repeated AgentFilesystemRoot enabled_filesystem_roots = 7;
+  repeated string forwarded_host_env_vars = 8;
 }
 
 message GetAgentRequest {
@@ -53,6 +55,7 @@ message UpdateAgentRequest {
   repeated string enabled_notification_channels = 6;
   string model = 7;
   repeated AgentFilesystemRoot enabled_filesystem_roots = 8;
+  repeated string forwarded_host_env_vars = 9;
 }
 
 message DeleteAgentRequest {

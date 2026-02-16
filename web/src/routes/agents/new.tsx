@@ -86,7 +86,12 @@ function NewAgent() {
 		}
 	};
 
-	const memoryTools = ["memory_view", "memory_create", "memory_edit", "memory_delete"];
+	const memoryTools = [
+		"memory_view",
+		"memory_create",
+		"memory_edit",
+		"memory_delete",
+	];
 	const memoryEnabled = memoryTools.every((t) => enabledTools.includes(t));
 
 	const toggleTool = (toolName: string) => {

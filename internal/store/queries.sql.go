@@ -11,9 +11,9 @@ import (
 )
 
 const createAgent = `-- name: CreateAgent :one
-INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots
+INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, forwarded_host_env_vars, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots, forwarded_host_env_vars
 `
 
 type CreateAgentParams struct {
@@ -25,6 +25,7 @@ type CreateAgentParams struct {
 	EnabledNotificationChannels string
 	EnabledFilesystemRoots      string
 	Model                       string
+	ForwardedHostEnvVars        string
 	CreatedAt                   string
 	UpdatedAt                   string
 }
@@ -39,6 +40,7 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 		arg.EnabledNotificationChannels,
 		arg.EnabledFilesystemRoots,
 		arg.Model,
+		arg.ForwardedHostEnvVars,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -54,6 +56,7 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EnabledFilesystemRoots,
+		&i.ForwardedHostEnvVars,
 	)
 	return i, err
 }
@@ -363,7 +366,7 @@ func (q *Queries) DeleteTrigger(ctx context.Context, id string) error {
 }
 
 const getAgent = `-- name: GetAgent :one
-SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots FROM agents WHERE id = ?
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots, forwarded_host_env_vars FROM agents WHERE id = ?
 `
 
 func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
@@ -380,6 +383,7 @@ func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EnabledFilesystemRoots,
+		&i.ForwardedHostEnvVars,
 	)
 	return i, err
 }
@@ -642,7 +646,7 @@ func (q *Queries) ListAgentFiles(ctx context.Context, arg ListAgentFilesParams) 
 }
 
 const listAgents = `-- name: ListAgents :many
-SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots FROM agents ORDER BY created_at DESC
+SELECT id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots, forwarded_host_env_vars FROM agents ORDER BY created_at DESC
 `
 
 func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
@@ -665,6 +669,7 @@ func (q *Queries) ListAgents(ctx context.Context) ([]Agent, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.EnabledFilesystemRoots,
+			&i.ForwardedHostEnvVars,
 		); err != nil {
 			return nil, err
 		}
@@ -937,9 +942,9 @@ func (q *Queries) ListTriggersByAgent(ctx context.Context, agentID string) ([]Tr
 
 const updateAgent = `-- name: UpdateAgent :one
 UPDATE agents
-SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, updated_at = ?
+SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, forwarded_host_env_vars = ?, updated_at = ?
 WHERE id = ?
-RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots
+RETURNING id, name, description, system_prompt, enabled_tools, enabled_notification_channels, model, created_at, updated_at, enabled_filesystem_roots, forwarded_host_env_vars
 `
 
 type UpdateAgentParams struct {
@@ -950,6 +955,7 @@ type UpdateAgentParams struct {
 	EnabledNotificationChannels string
 	EnabledFilesystemRoots      string
 	Model                       string
+	ForwardedHostEnvVars        string
 	UpdatedAt                   string
 	ID                          string
 }
@@ -963,6 +969,7 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 		arg.EnabledNotificationChannels,
 		arg.EnabledFilesystemRoots,
 		arg.Model,
+		arg.ForwardedHostEnvVars,
 		arg.UpdatedAt,
 		arg.ID,
 	)
@@ -978,6 +985,7 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EnabledFilesystemRoots,
+		&i.ForwardedHostEnvVars,
 	)
 	return i, err
 }

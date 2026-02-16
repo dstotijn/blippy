@@ -43,6 +43,19 @@ type AgentFilesystemRootConfig struct {
 	EnabledTools []string
 }
 
+type hostEnvVarsKey struct{}
+
+// WithHostEnvVars returns a context with the forwarded host env var names.
+func WithHostEnvVars(ctx context.Context, names []string) context.Context {
+	return context.WithValue(ctx, hostEnvVarsKey{}, names)
+}
+
+// GetHostEnvVars retrieves the forwarded host env var names from context.
+func GetHostEnvVars(ctx context.Context) []string {
+	names, _ := ctx.Value(hostEnvVarsKey{}).([]string)
+	return names
+}
+
 type fsToolRootsKey struct{}
 
 // WithFSToolRoots returns a context with per-tool filesystem root mappings.

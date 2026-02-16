@@ -1,6 +1,6 @@
 -- name: CreateAgent :one
-INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO agents (id, name, description, system_prompt, enabled_tools, enabled_notification_channels, enabled_filesystem_roots, model, forwarded_host_env_vars, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetAgent :one
@@ -11,7 +11,7 @@ SELECT * FROM agents ORDER BY created_at DESC;
 
 -- name: UpdateAgent :one
 UPDATE agents
-SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, updated_at = ?
+SET name = ?, description = ?, system_prompt = ?, enabled_tools = ?, enabled_notification_channels = ?, enabled_filesystem_roots = ?, model = ?, forwarded_host_env_vars = ?, updated_at = ?
 WHERE id = ?
 RETURNING *;
 

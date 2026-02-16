@@ -19,6 +19,7 @@ type Agent struct {
 	CreatedAt                   string
 	UpdatedAt                   string
 	EnabledFilesystemRoots      string
+	ForwardedHostEnvVars        string
 }
 
 type AgentFile struct {

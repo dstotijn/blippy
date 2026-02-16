@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
@@ -79,6 +80,15 @@ func NewBashTool(apiKey string) *Tool {
 			// Execute command
 			sprite := client.Sprite(spriteName)
 			cmd := sprite.CommandContext(ctx, "bash", "-c", a.Command)
+
+			// Forward host environment variables configured for this agent.
+			if names := GetHostEnvVars(ctx); len(names) > 0 {
+				for _, name := range names {
+					if val, ok := os.LookupEnv(name); ok {
+						cmd.Env = append(cmd.Env, name+"="+val)
+					}
+				}
+			}
 
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
