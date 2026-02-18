@@ -38,6 +38,7 @@ web/dist/
 # Environment
 .env
 .env.local
+.mise.local.toml
 
 # Claude Code
 .claude/settings.local.json
