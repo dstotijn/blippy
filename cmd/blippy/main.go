@@ -3,11 +3,14 @@ package main
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/dstotijn/blippy/internal/agent"
 	"github.com/dstotijn/blippy/internal/agentloop"
@@ -94,7 +97,7 @@ func run() error {
 	// Create and start scheduler
 	logger := slog.Default()
 	sched := scheduler.New(db, queries, agentRunner, logger)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 	sched.Start(ctx)
 	defer sched.Stop()
@@ -110,6 +113,23 @@ func run() error {
 		return fmt.Errorf("failed to create server: %w", err)
 	}
 
+	httpServer := &http.Server{
+		Addr:    ":" + port,
+		Handler: srv.Handler(),
+	}
+
+	// Shut down gracefully when context is cancelled (signal received).
+	go func() {
+		<-ctx.Done()
+		log.Println("Shutting down...")
+		if err := httpServer.Shutdown(context.Background()); err != nil {
+			log.Printf("HTTP server shutdown error: %v", err)
+		}
+	}()
+
 	log.Printf("🤖 Blippy listening on :%s", port)
-	return http.ListenAndServe(":"+port, srv.Handler())
+	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }

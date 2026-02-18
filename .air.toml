@@ -8,6 +8,8 @@ include_ext = ["go", "toml"]
 exclude_dir = ["tmp", "web", "node_modules", "vendor"]
 exclude_regex = ["_test\\.go"]
 delay = 1000
+send_interrupt = true
+kill_delay = "3s"
 
 [log]
 main_only = true
