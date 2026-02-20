@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessageSquare, Plus, Settings } from "lucide-react";
-import { toast } from "sonner";
+
 import { ConversationsTable } from "@/components/conversations-table";
 import { EmptyState } from "@/components/empty-state";
 import { PageContent } from "@/components/page-content";
@@ -27,16 +27,11 @@ function ConversationsPage() {
 	const conversations = data?.conversations ?? [];
 
 	const startNewConversation = async () => {
-		try {
-			const conv = await createConvMutation.mutateAsync({ agentId });
-			toast.success("Conversation created");
-			navigate({
-				to: "/agents/$agentId/$conversationId",
-				params: { agentId, conversationId: conv.id },
-			});
-		} catch {
-			toast.error("Failed to create conversation");
-		}
+		const conv = await createConvMutation.mutateAsync({ agentId });
+		navigate({
+			to: "/agents/$agentId/$conversationId",
+			params: { agentId, conversationId: conv.id },
+		});
 	};
 
 	return (
