@@ -125,6 +125,7 @@ function ConversationChat() {
 	const [streamingItems, setStreamingItems] = useState<MessageItem[]>([]);
 	const [title, setTitle] = useState<string | undefined>();
 	const lastMessageRef = useRef<HTMLDivElement>(null);
+	const lastUserMessageRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const initialLoadDone = useRef(false);
@@ -192,34 +193,15 @@ function ConversationChat() {
 		prevMessagesLength.current = 0;
 	}, [conversationId]);
 
-	// Scroll new message into view (after initial load)
+	// Track message count changes
 	useEffect(() => {
-		if (
-			initialLoadDone.current &&
-			messages.length > prevMessagesLength.current
-		) {
-			lastMessageRef.current?.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
-		}
 		prevMessagesLength.current = messages.length;
 	}, [messages]);
 
-	// Scroll when streaming items update
-	useEffect(() => {
-		if (initialLoadDone.current && streamingItems.length > 0) {
-			lastMessageRef.current?.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
-		}
-	}, [streamingItems]);
-
-	// Scroll when busy state changes to true
+	// When busy, scroll user's message to the top so the response fills below
 	useEffect(() => {
 		if (isBusy) {
-			lastMessageRef.current?.scrollIntoView({
+			lastUserMessageRef.current?.scrollIntoView({
 				behavior: "smooth",
 				block: "start",
 			});
@@ -449,9 +431,16 @@ function ConversationChat() {
 						<div className="space-y-4">
 							{messages.map((msg, index) => {
 								const isLast = index === messages.length - 1;
+								const isLastUser = isLast && msg.role === "user";
 								const shouldRef = isLast && streamingItems.length === 0;
 								return (
-									<div key={msg.id} ref={shouldRef ? lastMessageRef : null}>
+									<div
+										key={msg.id}
+										ref={(el) => {
+											if (shouldRef) lastMessageRef.current = el;
+											if (isLastUser) lastUserMessageRef.current = el;
+										}}
+									>
 										<MessageBubble message={msg} />
 									</div>
 								);
@@ -480,6 +469,7 @@ function ConversationChat() {
 									/>
 								</div>
 							)}
+							{isBusy && <div className="min-h-[calc(100vh-10rem)]" />}
 						</div>
 					)}
 				</div>
