@@ -90,6 +90,8 @@ message WatchEventsEvent {
     WatchError error = 4;
     TurnDone done = 5;
     TurnStarted turn_started = 6;
+    ToolCallStarted tool_call_started = 7;
+    ToolOutputDelta tool_output_delta = 8;
   }
 }
 
@@ -101,6 +103,7 @@ message ToolResult {
   string name = 1;
   string input = 2;
   string result = 3;
+  string call_id = 4;
 }
 
 message MessageCreated {
@@ -116,6 +119,17 @@ message TurnDone {
 }
 
 message TurnStarted {}
+
+message ToolCallStarted {
+  string call_id = 1;
+  string name = 2;
+  string input = 3;
+}
+
+message ToolOutputDelta {
+  string call_id = 1;
+  string delta = 2;
+}
 
 message Empty {}
 

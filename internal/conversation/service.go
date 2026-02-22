@@ -219,6 +219,7 @@ func toProtoWatchEvent(event any) (*WatchEventsEvent, error) {
 		return &WatchEventsEvent{
 			Event: &WatchEventsEvent_ToolResult{
 				ToolResult: &ToolResult{
+					CallId: e.CallID,
 					Name:   e.Name,
 					Input:  e.Input,
 					Result: e.Result,
@@ -250,6 +251,25 @@ func toProtoWatchEvent(event any) (*WatchEventsEvent, error) {
 		return &WatchEventsEvent{
 			Event: &WatchEventsEvent_Done{
 				Done: &TurnDone{Title: e.Title},
+			},
+		}, nil
+	case agentloop.ToolCallStarted:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_ToolCallStarted{
+				ToolCallStarted: &ToolCallStarted{
+					CallId: e.CallID,
+					Name:   e.Name,
+					Input:  e.Input,
+				},
+			},
+		}, nil
+	case agentloop.ToolOutputDelta:
+		return &WatchEventsEvent{
+			Event: &WatchEventsEvent_ToolOutputDelta{
+				ToolOutputDelta: &ToolOutputDelta{
+					CallId: e.CallID,
+					Delta:  e.Delta,
+				},
 			},
 		}, nil
 	case agentloop.TurnStarted:

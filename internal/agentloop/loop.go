@@ -41,8 +41,22 @@ type TextDelta struct {
 	Content string
 }
 
+// ToolCallStarted signals that a tool call has begun execution.
+type ToolCallStarted struct {
+	CallID string
+	Name   string
+	Input  string
+}
+
+// ToolOutputDelta represents an incremental chunk of tool output.
+type ToolOutputDelta struct {
+	CallID string
+	Delta  string
+}
+
 // ToolResult represents the outcome of a single tool execution.
 type ToolResult struct {
+	CallID string
 	Name   string
 	Input  string
 	Result string
@@ -287,21 +301,37 @@ func (l *Loop) runLoop(ctx context.Context, conv store.Conversation, orReq *open
 					items = append(items, StoredItem{Type: "text", Text: currentText})
 				}
 
-				toolInputs, err := l.ToolExecutor.ProcessOutput(ctx, event.Response.Output, func(r tool.ToolResult) {
-					decodedName := tool.DecodeToolName(r.Name)
-					items = append(items, StoredItem{
-						Type:   "tool_execution",
-						ID:     r.ID,
-						CallID: r.CallID,
-						Name:   decodedName,
-						Input:  r.Arguments,
-						Result: r.Output,
-					})
-					l.Broker.Publish(conv.ID, ToolResult{
-						Name:   decodedName,
-						Input:  r.Arguments,
-						Result: r.Output,
-					})
+				toolInputs, err := l.ToolExecutor.ProcessOutput(ctx, event.Response.Output, tool.ProcessOutputCallbacks{
+					OnStart: func(callID, name, input string) {
+						l.Broker.Publish(conv.ID, ToolCallStarted{
+							CallID: callID,
+							Name:   name,
+							Input:  input,
+						})
+					},
+					OnOutputDelta: func(callID, delta string) {
+						l.Broker.Publish(conv.ID, ToolOutputDelta{
+							CallID: callID,
+							Delta:  delta,
+						})
+					},
+					OnResult: func(r tool.ToolResult) {
+						decodedName := tool.DecodeToolName(r.Name)
+						items = append(items, StoredItem{
+							Type:   "tool_execution",
+							ID:     r.ID,
+							CallID: r.CallID,
+							Name:   decodedName,
+							Input:  r.Arguments,
+							Result: r.Output,
+						})
+						l.Broker.Publish(conv.ID, ToolResult{
+							CallID: r.CallID,
+							Name:   decodedName,
+							Input:  r.Arguments,
+							Result: r.Output,
+						})
+					},
 				})
 				if err != nil {
 					return "", fmt.Errorf("process output: %w", err)

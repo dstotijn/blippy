@@ -27,6 +27,7 @@ interface MessageItemText {
 
 interface MessageItemToolExecution {
 	type: "tool_execution";
+	callId?: string;
 	name: string;
 	input?: string;
 	result?: string;
@@ -85,6 +86,7 @@ function MessageBubble({
 							name={item.name}
 							input={item.input}
 							result={item.result}
+							isStreaming={isBusy}
 						/>
 					);
 				}
@@ -113,6 +115,19 @@ function MessageBubble({
 			{isBusy && message.items.length === 0 && <TypingIndicator />}
 		</div>
 	);
+}
+
+function findLastToolExecution(
+	items: MessageItem[],
+	callId: string,
+): MessageItemToolExecution | undefined {
+	for (let i = items.length - 1; i >= 0; i--) {
+		const item = items[i];
+		if (item.type === "tool_execution" && item.callId === callId) {
+			return item;
+		}
+	}
+	return undefined;
 }
 
 function ConversationChat() {
@@ -243,16 +258,49 @@ function ConversationChat() {
 							break;
 						}
 
-						case "toolResult":
+						case "toolCallStarted":
 							setIsBusy(true);
 							items.push({
 								type: "tool_execution",
+								callId: event.event.value.callId,
 								name: event.event.value.name,
 								input: event.event.value.input,
-								result: event.event.value.result,
 							});
 							setStreamingItems([...items]);
 							break;
+
+						case "toolOutputDelta": {
+							const callId = event.event.value.callId;
+							const item = findLastToolExecution(items, callId);
+							if (item) {
+								item.result = (item.result || "") + event.event.value.delta;
+								setStreamingItems([...items]);
+							}
+							break;
+						}
+
+						case "toolResult": {
+							setIsBusy(true);
+							const callId = event.event.value.callId;
+							const existing = callId
+								? findLastToolExecution(items, callId)
+								: undefined;
+							if (existing) {
+								// Finalize the streamed tool execution with the complete result.
+								existing.result = event.event.value.result;
+							} else {
+								// No matching toolCallStarted (e.g. non-streaming tool) — add new item.
+								items.push({
+									type: "tool_execution",
+									callId: callId || undefined,
+									name: event.event.value.name,
+									input: event.event.value.input,
+									result: event.event.value.result,
+								});
+							}
+							setStreamingItems([...items]);
+							break;
+						}
 
 						case "messageCreated": {
 							const msg = event.event.value.message;

@@ -56,6 +56,22 @@ func GetHostEnvVars(ctx context.Context) []string {
 	return names
 }
 
+// OutputCallback is called with incremental output chunks during tool execution.
+type OutputCallback func(delta string)
+
+type outputCallbackKey struct{}
+
+// WithOutputCallback returns a context with the output streaming callback set.
+func WithOutputCallback(ctx context.Context, cb OutputCallback) context.Context {
+	return context.WithValue(ctx, outputCallbackKey{}, cb)
+}
+
+// GetOutputCallback retrieves the output streaming callback from context.
+func GetOutputCallback(ctx context.Context) OutputCallback {
+	cb, _ := ctx.Value(outputCallbackKey{}).(OutputCallback)
+	return cb
+}
+
 type fsToolRootsKey struct{}
 
 // WithFSToolRoots returns a context with per-tool filesystem root mappings.

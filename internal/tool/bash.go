@@ -1,10 +1,12 @@
 package tool
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -90,41 +92,111 @@ func NewBashTool(apiKey string) *Tool {
 				}
 			}
 
-			var stdout, stderr bytes.Buffer
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
+			onOutput := GetOutputCallback(ctx)
 
-			err := cmd.Run()
-			exitCode := 0
-			if err != nil {
-				if exitErr, ok := err.(*sprites.ExitError); ok {
-					exitCode = exitErr.ExitCode()
-				} else {
-					log.Printf("Bash execution failed: %v", err)
-					return "", fmt.Errorf("execution failed: %w", err)
-				}
+			// Use streaming if an output callback is available.
+			if onOutput != nil {
+				return bashRunStreaming(cmd, onOutput)
 			}
-
-			// Format output
-			var out strings.Builder
-			if stdout.Len() > 0 {
-				out.WriteString(stdout.String())
-				if !strings.HasSuffix(stdout.String(), "\n") {
-					out.WriteString("\n")
-				}
-			}
-			if stderr.Len() > 0 {
-				out.WriteString("stderr:\n")
-				out.WriteString(stderr.String())
-				if !strings.HasSuffix(stderr.String(), "\n") {
-					out.WriteString("\n")
-				}
-			}
-			if exitCode != 0 {
-				out.WriteString(fmt.Sprintf("exit_code: %d", exitCode))
-			}
-
-			return strings.TrimSpace(out.String()), nil
+			return bashRunBuffered(cmd)
 		},
 	}
+}
+
+// bashRunBuffered runs the command and returns the full output at once.
+func bashRunBuffered(cmd *sprites.Cmd) (string, error) {
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	exitCode := 0
+	if err != nil {
+		if exitErr, ok := err.(*sprites.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			log.Printf("Bash execution failed: %v", err)
+			return "", fmt.Errorf("execution failed: %w", err)
+		}
+	}
+
+	return formatBashOutput(stdout.String(), stderr.String(), exitCode), nil
+}
+
+// bashRunStreaming runs the command, streaming stdout line-by-line via the callback,
+// and returns the complete output when done.
+func bashRunStreaming(cmd *sprites.Cmd, onOutput OutputCallback) (string, error) {
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("stdout pipe: %w", err)
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return "", fmt.Errorf("stderr pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Printf("Bash execution failed: %v", err)
+		return "", fmt.Errorf("execution failed: %w", err)
+	}
+
+	// Read stdout and stderr concurrently.
+	var stdoutBuf, stderrBuf strings.Builder
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		scanner := bufio.NewScanner(stdoutPipe)
+		for scanner.Scan() {
+			line := scanner.Text() + "\n"
+			stdoutBuf.WriteString(line)
+			onOutput(line)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		// Buffer stderr without streaming (it's included in final output).
+		_, _ = io.Copy(&stderrBuf, stderrPipe)
+	}()
+
+	// Wait for command to finish first — this closes the pipe write ends,
+	// which causes the reader goroutines above to see EOF and exit.
+	exitCode := 0
+	if err := cmd.Wait(); err != nil {
+		if exitErr, ok := err.(*sprites.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			log.Printf("Bash execution failed: %v", err)
+			return "", fmt.Errorf("execution failed: %w", err)
+		}
+	}
+
+	// Now wait for goroutines to finish draining any remaining pipe data.
+	wg.Wait()
+
+	return formatBashOutput(stdoutBuf.String(), stderrBuf.String(), exitCode), nil
+}
+
+// formatBashOutput combines stdout, stderr, and exit code into the final tool output string.
+func formatBashOutput(stdout, stderr string, exitCode int) string {
+	var out strings.Builder
+	if stdout != "" {
+		out.WriteString(stdout)
+		if !strings.HasSuffix(stdout, "\n") {
+			out.WriteString("\n")
+		}
+	}
+	if stderr != "" {
+		out.WriteString("stderr:\n")
+		out.WriteString(stderr)
+		if !strings.HasSuffix(stderr, "\n") {
+			out.WriteString("\n")
+		}
+	}
+	if exitCode != 0 {
+		out.WriteString(fmt.Sprintf("exit_code: %d", exitCode))
+	}
+	return strings.TrimSpace(out.String())
 }

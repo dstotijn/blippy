@@ -45,13 +45,23 @@ type ToolResult struct {
 	Output    string
 }
 
+// ProcessOutputCallbacks holds callbacks invoked during tool execution.
+type ProcessOutputCallbacks struct {
+	// OnStart is called when a tool call begins execution (before the tool runs).
+	OnStart func(callID, name, input string)
+	// OnOutputDelta is called with incremental output chunks during tool execution.
+	OnOutputDelta func(callID, delta string)
+	// OnResult is called when a tool finishes execution.
+	OnResult func(ToolResult)
+}
+
 // ProcessOutput checks response output for function calls and executes them concurrently.
 // Returns inputs to append to conversation for continuation, or nil if no tools called.
-// The onResult callback is invoked for each tool as it completes, enabling callers to
+// The callbacks are invoked at various stages of tool execution, enabling callers to
 // stream results to clients incrementally. Since OpenRouter doesn't support
 // previous_response_id, we send both the function_call items (echoing what the model
 // said) and function_call_output items.
-func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.OutputItem, onResult func(ToolResult)) ([]openrouter.Input, error) {
+func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.OutputItem, cbs ProcessOutputCallbacks) ([]openrouter.Input, error) {
 	var toolCalls []openrouter.OutputItem
 	for _, item := range output {
 		if item.Type == "function_call" {
@@ -66,6 +76,7 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 	var inputs []openrouter.Input
 
 	// First, echo back the function calls from the model's response
+	// and notify the caller that each tool call has started.
 	for _, call := range toolCalls {
 		inputs = append(inputs, openrouter.Input{
 			Type:      "function_call",
@@ -74,6 +85,9 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 			Name:      call.Name,
 			Arguments: call.Arguments,
 		})
+		if cbs.OnStart != nil {
+			cbs.OnStart(call.CallID, DecodeToolName(call.Name), call.Arguments)
+		}
 	}
 
 	// Execute tools concurrently
@@ -86,8 +100,16 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 	ch := make(chan toolOutput, len(toolCalls))
 	for i, call := range toolCalls {
 		go func(i int, call openrouter.OutputItem) {
+			// Inject output delta callback into context for this specific tool call.
+			toolCtx := ctx
+			if cbs.OnOutputDelta != nil {
+				toolCtx = WithOutputCallback(toolCtx, func(delta string) {
+					cbs.OnOutputDelta(call.CallID, delta)
+				})
+			}
+
 			internalName := DecodeToolName(call.Name)
-			result, err := e.executeTool(ctx, internalName, json.RawMessage(call.Arguments))
+			result, err := e.executeTool(toolCtx, internalName, json.RawMessage(call.Arguments))
 			if err != nil {
 				result = fmt.Sprintf("Error: %s", err.Error())
 			}
@@ -107,8 +129,8 @@ func (e *Executor) ProcessOutput(ctx context.Context, output []openrouter.Output
 			CallID: r.call.CallID,
 			Output: r.output,
 		}
-		if onResult != nil {
-			onResult(ToolResult{
+		if cbs.OnResult != nil {
+			cbs.OnResult(ToolResult{
 				CallID:    r.call.CallID,
 				ID:        r.call.ID,
 				Name:      r.call.Name,
