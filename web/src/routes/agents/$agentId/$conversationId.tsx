@@ -339,6 +339,13 @@ function ConversationChat() {
 		return () => controller.abort();
 	}, [conversationId, transport]);
 
+	// Auto-focus textarea when entering an empty conversation
+	useEffect(() => {
+		if (messagesData && messagesData.messages.length === 0) {
+			textareaRef.current?.focus();
+		}
+	}, [messagesData]);
+
 	// Dismiss keyboard when scrolling to the top
 	useEffect(() => {
 		const container = messagesContainerRef.current;
@@ -418,11 +425,11 @@ function ConversationChat() {
 			{/* Messages */}
 			<div
 				ref={messagesContainerRef}
-				className="flex-1 overflow-y-auto overscroll-contain pt-4"
+				className="flex flex-1 flex-col overflow-y-auto overscroll-y-contain pt-4"
 			>
-				<div className="mx-auto max-w-3xl px-4 md:px-6">
+				<div className="mx-auto flex max-w-3xl flex-1 flex-col px-4 md:px-6">
 					{messages.length === 0 && streamingItems.length === 0 ? (
-						<div className="flex h-full items-center justify-center">
+						<div className="flex flex-1 items-center justify-center">
 							<p className="text-muted-foreground">
 								Send a message to start the conversation
 							</p>
