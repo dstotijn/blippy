@@ -1,5 +1,6 @@
 import { useQuery } from "@connectrpc/connect-query";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Fragment } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
 	Breadcrumb,
@@ -87,16 +88,18 @@ export function Layout({ children }: LayoutProps) {
 					<Breadcrumb>
 						<BreadcrumbList>
 							{breadcrumbs.map((crumb, index) => (
-								<BreadcrumbItem key={crumb.label}>
+								<Fragment key={crumb.label}>
 									{index > 0 && <BreadcrumbSeparator />}
-									{crumb.href ? (
-										<BreadcrumbLink asChild>
-											<Link to={crumb.href}>{crumb.label}</Link>
-										</BreadcrumbLink>
-									) : (
-										<BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-									)}
-								</BreadcrumbItem>
+									<BreadcrumbItem>
+										{crumb.href ? (
+											<BreadcrumbLink asChild>
+												<Link to={crumb.href}>{crumb.label}</Link>
+											</BreadcrumbLink>
+										) : (
+											<BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+										)}
+									</BreadcrumbItem>
+								</Fragment>
 							))}
 						</BreadcrumbList>
 					</Breadcrumb>
