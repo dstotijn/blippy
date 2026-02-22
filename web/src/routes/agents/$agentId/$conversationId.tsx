@@ -427,7 +427,7 @@ function ConversationChat() {
 				ref={messagesContainerRef}
 				className="flex flex-1 flex-col overflow-y-auto overscroll-y-contain pt-4"
 			>
-				<div className="mx-auto flex max-w-3xl flex-1 flex-col px-4 md:px-6">
+				<div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 md:px-6">
 					{messages.length === 0 && streamingItems.length === 0 ? (
 						<div className="flex flex-1 items-center justify-center">
 							<p className="text-muted-foreground">
@@ -484,7 +484,7 @@ function ConversationChat() {
 
 			{/* Input */}
 			<div className="shrink-0 pt-2 pb-[env(safe-area-inset-bottom)] md:pb-4 md:px-6">
-				<div className="mx-auto max-w-3xl px-4 md:px-6">
+				<div className="mx-auto w-full max-w-3xl px-4 md:px-6">
 					<div className="flex items-end gap-2 rounded-lg border bg-background p-2 shadow-sm">
 						<Textarea
 							ref={textareaRef}
